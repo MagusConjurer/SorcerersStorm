@@ -1270,7 +1270,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.40800372, g: 0.29214135, b: 0.6132076, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1797,6 +1797,7 @@ GameObject:
   - component: {fileID: 1301042089}
   - component: {fileID: 1301042090}
   - component: {fileID: 1301042091}
+  - component: {fileID: 1301042092}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1854,6 +1855,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4adc6c0deb51fa84a903eb273ba3052a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1301042092
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1301042087}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22f5f36762408d1489920e711d1e81fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  availableCharacterTeamPositions: 01010101
 --- !u!1 &1316243668
 GameObject:
   m_ObjectHideFlags: 0
@@ -2702,7 +2716,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1911288769}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1301042091}
+        m_TargetAssemblyTypeName: MenuManager, Assembly-CSharp
+        m_MethodName: LoadGame
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1911288769
 MonoBehaviour:
   m_ObjectHideFlags: 0

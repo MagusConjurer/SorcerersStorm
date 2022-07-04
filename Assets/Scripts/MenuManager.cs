@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
 {
@@ -35,5 +36,10 @@ public class MenuManager : MonoBehaviour
     {
         MainMenu.SetActive(true);
         SettingsMenu.SetActive(false);
+    }
+
+    public void LoadGame()
+    {
+        SceneManager.LoadScene("GameScene");
     }
 }
