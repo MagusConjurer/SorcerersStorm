@@ -5,28 +5,20 @@ using UnityEngine.SceneManagement;
 
 public class Card : MonoBehaviour
 {
-    [SerializeField] private CardManager cardManager;
-    [SerializeField] private bool selected;
-    public int placedIndex;
+    [SerializeField] protected CardManager cardManager;
+    [SerializeField] protected bool selected;
+    protected SpriteRenderer cardSprite;
 
     private void Start()
     {
         try
         {
             cardManager = FindObjectOfType<GameManager>().GetComponent<CardManager>();
+            cardSprite = GetComponent<SpriteRenderer>();
         }
         catch
         {
             SceneManager.LoadScene("MainMenu");
-        }
-    }
-
-    private void OnMouseDown()
-    {
-        if (selected == false)
-        {
-            cardManager.SelectCharacter(this);
-            selected = true;
         }
     }
 }

@@ -1,18 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 public class CardManager : MonoBehaviour
 {
+    // Character Cards
     private List<Transform> characterRosterPositions = new List<Transform>();
     private List<Transform> characterTeamPositions = new List<Transform>();
-    private List<Card> characterDeck = new List<Card>();
-    private List<Card> characterSelectedDeck = new List<Card>();
+    private List<CharacterCard> characterDeck = new List<CharacterCard>();
+    private List<CharacterCard> characterSelectedDeck = new List<CharacterCard>();
     private bool cardsLoaded = false;
-    private bool fullTeamSelected;
-
     public bool[] availableCharacterTeamPositions;
+    public bool fullTeamSelected;
+
+    // Game Panels
+    private GameObject rosterPanel;
+    private GameObject boardPanel;
+    private GameObject teamPanel;
+
+    // Encounters
+    private List<EncounterCard> encounterDeck = new List<EncounterCard>();
 
     // Start is called before the first frame update
     void Start()
@@ -24,9 +33,8 @@ public class CardManager : MonoBehaviour
     /// Called when a card is clicked on
     /// </summary>
     /// <param name="characterCard"></param>
-    public void SelectCharacter(Card characterCard)
+    public void SelectCharacter(CharacterCard characterCard)
     {
-        Debug.Log(characterCard.name);
         if (characterSelectedDeck.Contains(characterCard) == false && fullTeamSelected == false)
         {
             characterSelectedDeck.Add(characterCard);
@@ -34,6 +42,7 @@ public class CardManager : MonoBehaviour
             {
                 fullTeamSelected = true;
                 Invoke("PlaceCharacters", .5f);
+                Invoke("DisplayBoard", .75f);
             }
         }
     }
@@ -43,14 +52,14 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void PlaceCharacters()
     {
-        Debug.Log("Placing Characters in " + availableCharacterTeamPositions.Length + " positions");
         for (int i = 0; i < availableCharacterTeamPositions.Length; i++)
         {
-            Card characterCard = characterSelectedDeck[i];
+            CharacterCard characterCard = characterSelectedDeck[i];
             if (availableCharacterTeamPositions[i] == true)
             {
                 characterCard.placedIndex = i;
                 characterCard.transform.position = characterTeamPositions[i].position;
+                characterCard.ResetColor();
 
                 availableCharacterTeamPositions[i] = false;
                 characterDeck.Remove(characterCard);
@@ -68,7 +77,7 @@ public class CardManager : MonoBehaviour
         characterRosterPositions.RemoveAt(0);
         characterTeamPositions.AddRange(GameObject.Find("TeamPositions").GetComponentsInChildren<Transform>());
         characterTeamPositions.RemoveAt(0);
-        characterDeck.AddRange(GameObject.Find("CharacterCards").GetComponentsInChildren<Card>());
+        characterDeck.AddRange(GameObject.Find("CharacterCards").GetComponentsInChildren<CharacterCard>());
         fullTeamSelected = false;
 
         for (int i = 0; i < characterDeck.Count; i++)
@@ -85,6 +94,57 @@ public class CardManager : MonoBehaviour
         {
             cardsLoaded = true;
             LoadCharacterCards();
+            LoadEncounterCards();
+            LoadGamePanels();
         }
+    }
+
+    /// <summary>
+    /// Called after the GameScene is loaded.
+    /// </summary>
+    private void LoadGamePanels()
+    {
+        rosterPanel = GameObject.Find("RosterPanel");
+        boardPanel = GameObject.Find("BoardPanel");
+        teamPanel = GameObject.Find("TeamPanel");
+
+        Button[] boardButtons = boardPanel.GetComponentsInChildren<Button>();
+        foreach(Button button in boardButtons)
+        {
+            if(button.name == "EncounterButton")
+            {
+                button.onClick.AddListener(DrawEncounter);
+            }
+        }
+
+        DisplayRoster();
+    }    
+
+    private void DisplayRoster()
+    {
+        rosterPanel.SetActive(true);
+        boardPanel.SetActive(false);
+    }
+
+    private void DisplayBoard()
+    {
+        rosterPanel.SetActive(false);
+        boardPanel.SetActive(true);
+    }
+
+    private void LoadEncounterCards()
+    {
+        encounterDeck.AddRange(GameObject.Find("Encounters").GetComponentsInChildren<EncounterCard>());
+        foreach(EncounterCard card in encounterDeck)
+        {
+            card.gameObject.SetActive(false);
+        }
+    }
+
+    private void DrawEncounter()
+    {
+        EncounterCard currentEncounter = encounterDeck[Random.Range(0, encounterDeck.Count)];
+        currentEncounter.gameObject.SetActive(true);
+        currentEncounter.transform.position = Vector3.zero;
     }
 }
