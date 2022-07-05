@@ -18,6 +18,8 @@ public class MenuManager : MonoBehaviour
             MainMenu.SetActive(true);
             SettingsMenu.SetActive(false);
         }
+
+        // TODO: Implement setting button TaskOnClick for when the menu is loaded from another scene
     }
 
     // Update is called once per frame

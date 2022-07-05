@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Card : MonoBehaviour
 {
@@ -10,7 +11,14 @@ public class Card : MonoBehaviour
 
     private void Start()
     {
-        cardManager = FindObjectOfType<GameManager>().GetComponent<CardManager>();
+        try
+        {
+            cardManager = FindObjectOfType<GameManager>().GetComponent<CardManager>();
+        }
+        catch
+        {
+            SceneManager.LoadScene("MainMenu");
+        }
     }
 
     private void OnMouseDown()
