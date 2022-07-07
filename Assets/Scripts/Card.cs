@@ -9,7 +9,7 @@ public class Card : MonoBehaviour
     [SerializeField] protected bool selected;
     protected SpriteRenderer cardSprite;
 
-    private void Start()
+    protected virtual void Start()
     {
         try
         {
