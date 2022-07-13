@@ -21,4 +21,9 @@ public class Card : MonoBehaviour
             SceneManager.LoadScene("MainMenu");
         }
     }
+
+    protected void HideCard()
+    {
+        gameObject.SetActive(false);
+    }
 }

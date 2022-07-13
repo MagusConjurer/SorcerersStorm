@@ -11,17 +11,24 @@ public class CardManager : MonoBehaviour
     private List<Transform> characterTeamPositions = new List<Transform>();
     private List<CharacterCard> characterDeck = new List<CharacterCard>();
     private List<CharacterCard> characterSelectedDeck = new List<CharacterCard>();
+    private CharacterCard currentCharacter;
+    private bool encounterCharacterSelected = false;
     private bool cardsLoaded = false;
     public bool[] availableCharacterTeamPositions;
     public bool fullTeamSelected;
+    
 
-    // Game Panels
+    // GUI
     private GameObject rosterPanel;
     private GameObject boardPanel;
     private GameObject teamPanel;
+    private Button encounterButton;
+    private Button rollButton;
 
     // Encounters
+    private bool inEncounter;
     private List<EncounterCard> encounterDeck = new List<EncounterCard>();
+    private EncounterCard currentEncounter;
 
     // Start is called before the first frame update
     void Start()
@@ -33,11 +40,13 @@ public class CardManager : MonoBehaviour
     /// Called when a card is clicked on
     /// </summary>
     /// <param name="characterCard"></param>
-    public void SelectCharacter(CharacterCard characterCard)
+    public void AddToTeam(CharacterCard characterCard)
     {
         if (characterSelectedDeck.Contains(characterCard) == false && fullTeamSelected == false)
         {
             characterSelectedDeck.Add(characterCard);
+            characterCard.inTeam = true;
+            characterCard.SelectCharacter();
             if (characterSelectedDeck.Count == 4)
             {
                 fullTeamSelected = true;
@@ -59,7 +68,7 @@ public class CardManager : MonoBehaviour
             {
                 characterCard.placedIndex = i;
                 characterCard.transform.position = characterTeamPositions[i].position;
-                characterCard.ResetColor();
+                characterCard.UnselectCharacter();
 
                 availableCharacterTeamPositions[i] = false;
                 characterDeck.Remove(characterCard);
@@ -97,6 +106,7 @@ public class CardManager : MonoBehaviour
             LoadEncounterCards();
             LoadGamePanels();
         }
+
     }
 
     /// <summary>
@@ -113,7 +123,15 @@ public class CardManager : MonoBehaviour
         {
             if(button.name == "EncounterButton")
             {
+                encounterButton = button;
                 button.onClick.AddListener(DrawEncounter);
+                button.enabled = true;
+            }
+            else if(button.name == "DiceRollButton")
+            {
+                rollButton = button;
+                button.onClick.AddListener(HandleRoll);
+                button.enabled = false;
             }
         }
 
@@ -141,10 +159,84 @@ public class CardManager : MonoBehaviour
         }
     }
 
+    private void UpdateButtons()
+    {
+        encounterButton.enabled = !inEncounter;
+        rollButton.enabled = (inEncounter && encounterCharacterSelected);
+    }
+
     private void DrawEncounter()
     {
-        EncounterCard currentEncounter = encounterDeck[Random.Range(0, encounterDeck.Count)];
+        currentEncounter = encounterDeck[Random.Range(0, encounterDeck.Count)];
         currentEncounter.gameObject.SetActive(true);
+        // TODO: Choose encounter position
         currentEncounter.transform.position = Vector3.zero;
+        inEncounter = true;
+        UpdateButtons();
+    }
+
+    private void HandleRoll()
+    {
+        if(inEncounter == true && encounterCharacterSelected == true)
+        {
+            // Dice roll + character stat
+            int totalValue = Random.Range(1, 6) + GetEncounterStat();
+            bool isWin = currentEncounter.IsResultWin(totalValue);
+            string resultAction = currentEncounter.ResultAction(isWin);
+            HandleAction(resultAction, isWin);
+            inEncounter = false;
+            encounterCharacterSelected = false;
+            currentCharacter.UnselectCharacter();
+            UpdateButtons();
+        }
+    }
+
+    private void HandleAction(string actionType, bool isWin)
+    {
+        switch(actionType)
+        {
+            case "Item":
+                break;
+            case "Health":
+                if(isWin == true)
+                {
+                    currentCharacter.DecreaseHealth(currentEncounter.ResultAmount(true));
+                }
+                else
+                {
+                    currentCharacter.DecreaseHealth(currentEncounter.ResultAmount(false));
+                }
+                break;
+            case "Strength":
+                break;
+        }
+    }
+
+    private int GetEncounterStat()
+    {
+        switch (currentEncounter.GetEncounterType())
+        {
+            case "Enemy":
+                return currentCharacter.GetStrength();
+            case "Trap":
+                return 0;
+            case "SkillCheck":
+                return 0;
+            case "Unlockable":
+                return 0;
+        }
+
+        return 0;
+    }
+
+    public void SetCurrentCharacter(CharacterCard characterCard)
+    {
+        if (inEncounter == true && encounterCharacterSelected == false)
+        {
+            currentCharacter = characterCard;
+            characterCard.SelectCharacter();
+            encounterCharacterSelected = true;
+            UpdateButtons();
+        }
     }
 }

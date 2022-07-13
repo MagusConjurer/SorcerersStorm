@@ -11,6 +11,7 @@ public class CharacterCard : Card
 
     public int placedIndex;
     public bool isAlive;
+    public bool inTeam;
 
     protected override void Start()
     {
@@ -27,51 +28,113 @@ public class CharacterCard : Card
         if(currentHealth <= 0)
         {
             isAlive = false;
-            HandleDeath();
+            HideCard();
         }
     }
 
-    public void ResetColor()
+    public void UnselectCharacter()
     {
+        selected = false;
         cardSprite.color = cardSprite.color * 2;
     }
-
-    public void SetHealth(int value)
+    public void SelectCharacter()
     {
-        SpriteRenderer[] healthSprites = GetStatSprites("Health");
-        currentHealth = value;
-        SetStatSprites(healthSprites, value);
+        selected = true;
+        cardSprite.color = cardSprite.color / 2;
     }
 
-    public void SetStrength(int value)
+    public int GetHealth()
     {
-        SpriteRenderer[] strengthSprites = GetStatSprites("Strength");
-        currentStrength = value;
-        SetStatSprites(strengthSprites, value);
+        return currentHealth;
     }
 
-    public void SetAccuracy(int value)
+    public int GetStrength()
     {
-        SpriteRenderer[] accuracySprites = GetStatSprites("Accuracy");
-        currentAccuracy = value;
-        SetStatSprites(accuracySprites, value);
+        return currentStrength;
     }
 
-    public void SetStealth(int value)
+    public int GetAccuracy()
     {
-        SpriteRenderer[] stealthSprites = GetStatSprites("Stealth");
-        currentStealth = value;
-        SetStatSprites(stealthSprites, value);
+        return currentAccuracy;
     }
 
+    public int GetStealth()
+    {
+        return currentStealth;
+    }
+
+    public void DecreaseHealth(int value)
+    {
+        SetHealth(currentHealth - value);
+    }
+
+    public void DecreaseStrength(int value)
+    {
+        SetStrength(currentStrength - value);
+    }
+
+    public void DecreaseAccuracy(int value)
+    {
+        SetAccuracy(currentAccuracy - value);
+    }
+
+    public void DecreaseStealth(int value)
+    {
+        SetStealth(currentStealth - value);
+    }
+
+    private void SetHealth(int value)
+    {
+        if(currentHealth >= 0 && value >= 0)
+        {
+            SpriteRenderer[] healthSprites = GetStatSprites("Health");
+            currentHealth = value;
+            SetStatSprites(healthSprites, value);
+        }
+    }
+
+    private void SetStrength(int value)
+    {
+        if(currentStrength >= 0 && value >= 0)
+        {
+            SpriteRenderer[] strengthSprites = GetStatSprites("Strength");
+            currentStrength = value;
+            SetStatSprites(strengthSprites, value);
+        }
+    }
+
+    private void SetAccuracy(int value)
+    {
+        if(currentAccuracy >= 0 && value >= 0)
+        {
+            SpriteRenderer[] accuracySprites = GetStatSprites("Accuracy");
+            currentAccuracy = value;
+            SetStatSprites(accuracySprites, value);
+        }
+    }
+
+    private void SetStealth(int value)
+    {
+        if(currentStealth >= 0 && value >= 0)
+        {
+            SpriteRenderer[] stealthSprites = GetStatSprites("Stealth");
+            currentStealth = value;
+            SetStatSprites(stealthSprites, value);
+        }
+    }
 
     private void OnMouseDown()
     {
         if (selected == false)
         {
-            cardManager.SelectCharacter(this);
-            selected = true;
-            cardSprite.color = cardSprite.color / 2;
+            if(inTeam == false)
+            {
+                cardManager.AddToTeam(this);
+            }
+            else
+            {
+                cardManager.SetCurrentCharacter(this);
+            }
         }
     }
 
@@ -119,14 +182,5 @@ public class CharacterCard : Card
         {
             Debug.Log("No sprites available to set the stat for.");
         }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    private void HandleDeath()
-    {
-        // TODO: Implement updating the character when their health is 0.
-        // most likely will want parent method for this
     }
 }

@@ -2886,6 +2886,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38b8e02bb4eeca5419ead43da3505488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cardManager: {fileID: 0}
+  selected: 0
+  EncounterType: 0
+  enemyStrength: 3
+  winCriteria: 0700000008000000090000000a0000000b0000000c000000
+  loseCriteria: 010000000200000003000000040000000500000006000000
+  WinResult: 0
+  WinResultAmount: 1
+  LossResult: 1
+  LossResultAmount: 1
 --- !u!212 &1647657060
 SpriteRenderer:
   m_ObjectHideFlags: 0
