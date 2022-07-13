@@ -32,6 +32,8 @@ public class CardManager : MonoBehaviour
     private bool inEncounter;
     private List<EncounterCard> encounterDeck = new List<EncounterCard>();
     private EncounterCard currentEncounter;
+    private Transform encounterCardPosition;
+    private Transform encounterCharacterPosition;
 
     // Start is called before the first frame update
     void Start()
@@ -53,8 +55,8 @@ public class CardManager : MonoBehaviour
             if (characterSelectedDeck.Count == 4)
             {
                 fullTeamSelected = true;
-                Invoke("PlaceCharacters", .5f);
-                Invoke("DisplayBoard", .75f);
+                Invoke(nameof(MoveAllToTeamPositions), .5f);
+                Invoke(nameof(DisplayBoard), .75f);
             }
         }
     }
@@ -62,7 +64,7 @@ public class CardManager : MonoBehaviour
     /// <summary>
     /// Moves the selected characters to their corresponding team positions.
     /// </summary>
-    private void PlaceCharacters()
+    private void MoveAllToTeamPositions()
     {
         for (int i = 0; i < availableCharacterTeamPositions.Length; i++)
         {
@@ -70,13 +72,28 @@ public class CardManager : MonoBehaviour
             if (availableCharacterTeamPositions[i] == true)
             {
                 characterCard.placedIndex = i;
-                characterCard.transform.position = characterTeamPositions[i].position;
+                MoveToTeamPosition(characterCard);
                 characterCard.UnselectCharacter();
 
                 availableCharacterTeamPositions[i] = false;
                 characterDeck.Remove(characterCard);
             }
         }
+    }
+
+    /// <summary>
+    /// Moves a character card to it's placed index position. 
+    /// 
+    /// Only use after MoveAllToTeamPositions has been called.
+    /// </summary>
+    private void MoveToTeamPosition(CharacterCard character)
+    {
+        character.transform.position = characterTeamPositions[character.placedIndex].position;
+    }
+
+    private void MoveToEncounterPosition(CharacterCard character)
+    {
+        character.transform.position = encounterCharacterPosition.position;
     }
 
     /// <summary>
@@ -106,13 +123,13 @@ public class CardManager : MonoBehaviour
         {
             cardsLoaded = true;
             LoadCharacterCards();
-            LoadEncounterCards();
+            LoadEncounters();
             LoadGamePanels();
         }
 
         if(outOfTurns == true)
         {
-            Invoke("LoadBossEncounter", .5f);
+            Invoke(nameof(LoadBossEncounter), .5f);
         }
 
     }
@@ -173,8 +190,11 @@ public class CardManager : MonoBehaviour
         bossPanel.SetActive(false);
     }
 
-    private void LoadEncounterCards()
+    private void LoadEncounters()
     {
+        encounterCardPosition = GameObject.Find("EncounterCardPosition").GetComponent<Transform>();
+        encounterCharacterPosition = GameObject.Find("EncounterCharacterPosition").GetComponent<Transform>();
+
         encounterDeck.AddRange(GameObject.Find("Encounters").GetComponentsInChildren<EncounterCard>());
         foreach(EncounterCard card in encounterDeck)
         {
@@ -218,8 +238,7 @@ public class CardManager : MonoBehaviour
             currentEncounter = encounterDeck[randIndex];
             encounterDeck.RemoveAt(randIndex);
             currentEncounter.gameObject.SetActive(true);
-            // TODO: Choose encounter position
-            currentEncounter.transform.position = Vector3.zero;
+            currentEncounter.transform.position = encounterCardPosition.position;
             inEncounter = true;
             UpdateButtons();
         }
@@ -232,6 +251,7 @@ public class CardManager : MonoBehaviour
     {
         inEncounter = false;
         encounterCharacterSelected = false;
+        MoveToTeamPosition(currentCharacter);
         currentCharacter.UnselectCharacter();
         outOfTurns = IncrementTurnTracker(1);
         currentEncounter.gameObject.SetActive(false);
@@ -247,7 +267,7 @@ public class CardManager : MonoBehaviour
             bool isWin = currentEncounter.IsResultWin(totalValue);
             string resultAction = currentEncounter.ResultAction(isWin);
             HandleEncounterAction(resultAction, isWin);
-            Invoke("EndEncounter", .25f);
+            Invoke(nameof(EndEncounter), .25f);
         }
     }
 
@@ -296,6 +316,7 @@ public class CardManager : MonoBehaviour
             currentCharacter = characterCard;
             characterCard.SelectCharacter();
             encounterCharacterSelected = true;
+            MoveToEncounterPosition(currentCharacter);
             UpdateButtons();
         }
     }
