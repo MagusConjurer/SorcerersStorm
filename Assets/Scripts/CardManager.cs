@@ -22,6 +22,9 @@ public class CardManager : MonoBehaviour
     private GameObject rosterPanel;
     private GameObject boardPanel;
     private GameObject teamPanel;
+    private GameObject bossPanel;
+    private Slider turnTracker;
+    private bool outOfTurns = false;
     private Button encounterButton;
     private Button rollButton;
 
@@ -107,6 +110,11 @@ public class CardManager : MonoBehaviour
             LoadGamePanels();
         }
 
+        if(outOfTurns == true)
+        {
+            Invoke("LoadBossEncounter", .5f);
+        }
+
     }
 
     /// <summary>
@@ -117,6 +125,9 @@ public class CardManager : MonoBehaviour
         rosterPanel = GameObject.Find("RosterPanel");
         boardPanel = GameObject.Find("BoardPanel");
         teamPanel = GameObject.Find("TeamPanel");
+        bossPanel = GameObject.Find("BossPanel");
+
+        turnTracker = boardPanel.GetComponentInChildren<Slider>();
 
         Button[] boardButtons = boardPanel.GetComponentsInChildren<Button>();
         foreach(Button button in boardButtons)
@@ -136,18 +147,30 @@ public class CardManager : MonoBehaviour
         }
 
         DisplayRoster();
-    }    
+    }
+    
+    private void LoadBossEncounter()
+    {
+        rosterPanel.SetActive(false);
+        boardPanel.SetActive(false);
+        bossPanel.SetActive(true);
+
+        Text bossText = bossPanel.GetComponentInChildren<Text>();
+        bossText.text = "BOSS: The Sorcerer";
+    }
 
     private void DisplayRoster()
     {
         rosterPanel.SetActive(true);
         boardPanel.SetActive(false);
+        bossPanel.SetActive(false);
     }
 
     private void DisplayBoard()
     {
         rosterPanel.SetActive(false);
         boardPanel.SetActive(true);
+        bossPanel.SetActive(false);
     }
 
     private void LoadEncounterCards()
@@ -165,13 +188,53 @@ public class CardManager : MonoBehaviour
         rollButton.enabled = (inEncounter && encounterCharacterSelected);
     }
 
+    /// <summary>
+    /// Increments the turn timer by the given amount.
+    /// </summary>
+    /// <param name="amount">The amount to increment the turn tracker by</param>
+    /// <returns>True if the tracker has reached the maximum</returns>
+    private bool IncrementTurnTracker(int amount)
+    {
+        if((turnTracker.value + amount) < turnTracker.maxValue)
+        {
+            turnTracker.value += amount;
+            return false;
+        }
+        else
+        {
+            turnTracker.value = turnTracker.maxValue;
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// If there are still turns available, pull a random card out of the encounter deck and display it.
+    /// </summary>
     private void DrawEncounter()
     {
-        currentEncounter = encounterDeck[Random.Range(0, encounterDeck.Count)];
-        currentEncounter.gameObject.SetActive(true);
-        // TODO: Choose encounter position
-        currentEncounter.transform.position = Vector3.zero;
-        inEncounter = true;
+        if(outOfTurns == false)
+        {
+            int randIndex = Random.Range(0, encounterDeck.Count);
+            currentEncounter = encounterDeck[randIndex];
+            encounterDeck.RemoveAt(randIndex);
+            currentEncounter.gameObject.SetActive(true);
+            // TODO: Choose encounter position
+            currentEncounter.transform.position = Vector3.zero;
+            inEncounter = true;
+            UpdateButtons();
+        }
+    }
+
+    /// <summary>
+    /// Removes the currentEncounter card from the board
+    /// </summary>
+    private void EndEncounter()
+    {
+        inEncounter = false;
+        encounterCharacterSelected = false;
+        currentCharacter.UnselectCharacter();
+        outOfTurns = IncrementTurnTracker(1);
+        currentEncounter.gameObject.SetActive(false);
         UpdateButtons();
     }
 
@@ -183,15 +246,12 @@ public class CardManager : MonoBehaviour
             int totalValue = Random.Range(1, 6) + GetEncounterStat();
             bool isWin = currentEncounter.IsResultWin(totalValue);
             string resultAction = currentEncounter.ResultAction(isWin);
-            HandleAction(resultAction, isWin);
-            inEncounter = false;
-            encounterCharacterSelected = false;
-            currentCharacter.UnselectCharacter();
-            UpdateButtons();
+            HandleEncounterAction(resultAction, isWin);
+            Invoke("EndEncounter", .25f);
         }
     }
 
-    private void HandleAction(string actionType, bool isWin)
+    private void HandleEncounterAction(string actionType, bool isWin)
     {
         switch(actionType)
         {
