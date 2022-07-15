@@ -6,30 +6,25 @@ using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
 {
-    private GameObject gameManager;
+    private GameManager gameManager;
     private GameObject MainMenu;
     private GameObject SettingsMenu;
+    private bool reloadComplete = true;
     // Start is called before the first frame update
     void Start()
     {
-        gameManager = GameObject.Find("GameManager");
-        MainMenu = GameObject.Find("MainMenuPanel");
-        SettingsMenu = GameObject.Find("SettingsMenuPanel");
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
 
-        if(MainMenu != null && SettingsMenu != null)
-        {
-            SetupButtons(MainMenu);
-            SetupButtons(SettingsMenu);
-
-            MainMenu.SetActive(true);
-            SettingsMenu.SetActive(false);
-        }
+        reloadComplete = SetupPanels();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if(reloadComplete == false)
+        {
+            reloadComplete = SetupPanels();
+        }
     }
 
     public void DisplaySettings()
@@ -47,6 +42,33 @@ public class MenuManager : MonoBehaviour
     public void LoadGame()
     {
         SceneManager.LoadScene("GameScene");
+    }
+
+    public void LoadMainMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    private bool SetupPanels()
+    {
+        if(MainMenu == null || SettingsMenu == null)
+        {
+            MainMenu = GameObject.Find("MainMenuPanel");
+            SettingsMenu = GameObject.Find("SettingsMenuPanel");
+        }
+
+        if (MainMenu != null && SettingsMenu != null)
+        {
+            SetupButtons(MainMenu);
+            SetupButtons(SettingsMenu);
+
+            MainMenu.SetActive(true);
+            SettingsMenu.SetActive(false);
+
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -70,6 +92,30 @@ public class MenuManager : MonoBehaviour
             {
                 button.onClick.AddListener(DisplayMainMenu);
             }
+        }
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+    /// <summary>
+    /// Used to call methods after the scene is loaded
+    /// 
+    /// Following the example from: https://docs.unity3d.com/ScriptReference/SceneManagement.SceneManager-sceneLoaded.html
+    /// </summary>
+    /// <param name="scene"></param>
+    /// <param name="mode"></param>
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if(scene.name == "GameScene")
+        {
+            Button mainMenuButton = GameObject.Find("LoadMainMenuButton").GetComponent<Button>();
+            mainMenuButton.onClick.AddListener(LoadMainMenu);
+        }
+        if(scene.name == "MainMenu")
+        {
+            reloadComplete = false;
         }
     }
 }
