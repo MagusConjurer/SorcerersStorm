@@ -7,13 +7,18 @@ using UnityEngine.SceneManagement;
 public class MenuManager : MonoBehaviour
 {
     private GameManager gameManager;
+    private GraphicsManager graphicsManager;
     private GameObject MainMenu;
     private GameObject SettingsMenu;
+    private Dropdown resDropdown;
+    private Toggle fsToggle;
     private bool reloadComplete = true;
+
     // Start is called before the first frame update
     void Start()
     {
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        graphicsManager = gameManager.GetComponent<GraphicsManager>();
 
         reloadComplete = SetupPanels();
     }
@@ -49,6 +54,11 @@ public class MenuManager : MonoBehaviour
         SceneManager.LoadScene("MainMenu");
     }
 
+    public void ExitGame()
+    {
+        Application.Quit();
+    }
+
     private bool SetupPanels()
     {
         if(MainMenu == null || SettingsMenu == null)
@@ -59,8 +69,8 @@ public class MenuManager : MonoBehaviour
 
         if (MainMenu != null && SettingsMenu != null)
         {
-            SetupButtons(MainMenu);
-            SetupButtons(SettingsMenu);
+            SetupMenuScripts(MainMenu);
+            SetupMenuScripts(SettingsMenu);
 
             MainMenu.SetActive(true);
             SettingsMenu.SetActive(false);
@@ -75,23 +85,35 @@ public class MenuManager : MonoBehaviour
     /// Assign the OnClick functions to the buttons. Primarily for when the MainMenu scene loads from another scene.
     /// </summary>
     /// <param name="menu">A UI panel game object with button children</param>
-    private void SetupButtons(GameObject menu)
+    private void SetupMenuScripts(GameObject menu)
     {
         Button[] menuButtons = menu.GetComponentsInChildren<Button>();
         foreach (Button button in menuButtons)
         {
-            if (button.gameObject.name == "PlayButton")
+            switch(button.gameObject.name)
             {
-                button.onClick.AddListener(LoadGame);
+                case ("PlayButton"):
+                    button.onClick.AddListener(LoadGame);
+                    break;
+                case ("SettingsButton"):
+                    button.onClick.AddListener(DisplaySettings);
+                    break;
+                case ("ReturnToMainButton"):
+                    button.onClick.AddListener(DisplayMainMenu);
+                    break;
+                case ("ExitButton"):
+                    button.onClick.AddListener(ExitGame);
+                    break;
             }
-            else if (button.gameObject.name == "SettingsButton")
-            {
-                button.onClick.AddListener(DisplaySettings);
-            }
-            else if (button.gameObject.name == "ReturnToMainButton")
-            {
-                button.onClick.AddListener(DisplayMainMenu);
-            }
+        }
+
+        if(menu.name == "SettingsMenuPanel")
+        {
+            resDropdown = GameObject.Find("ResolutionDropdown").GetComponent<Dropdown>();
+            fsToggle = GameObject.Find("FullScreenToggle").GetComponent<Toggle>();
+
+            resDropdown.onValueChanged.AddListener(delegate { graphicsManager.SetResolution(resDropdown); });
+            fsToggle.onValueChanged.AddListener(delegate { graphicsManager.SetFullscreen(fsToggle); });
         }
     }
 

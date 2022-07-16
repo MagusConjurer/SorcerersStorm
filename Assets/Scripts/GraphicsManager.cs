@@ -10,32 +10,22 @@ public class GraphicsManager : MonoBehaviour
     private int height = 1080;
     private bool fullscreen = false;
 
-    public void SetResolution()
+    public void SetResolution(Dropdown resolutionDropdown)
     {
-        Dropdown resDropdown = GameObject.Find("ResolutionDropdown").GetComponent<Dropdown>();
-        switch (resDropdown.options[resDropdown.value].text)
+        switch (resolutionDropdown.options[resolutionDropdown.value].text)
         {
             case "1920x1080":
                 width = 1920;
                 height = 1080;
-                break;
-            case "1080x720":
-                width = 1080;
-                height = 720;
-                break;
-            case "720x480":
-                width = 720;
-                height = 480;
                 break;
         }
 
         Screen.SetResolution(width, height, fullscreen);
     }
 
-    public void SetFullscreen()
+    public void SetFullscreen(Toggle fullscreenToggle)
     {
-        Toggle fsToggle = GameObject.Find("FullScreenToggle").GetComponent<Toggle>();
-        fullscreen = fsToggle.isOn;
+        fullscreen = fullscreenToggle.isOn;
 
         Screen.SetResolution(width, height, fullscreen);
     }

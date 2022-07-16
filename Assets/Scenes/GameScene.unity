@@ -3360,6 +3360,18 @@ PrefabInstance:
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8252593488764781597, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
+      propertyPath: baseHealth
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8252593488764781597, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
+      propertyPath: baseAccuracy
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8252593488764781597, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
+      propertyPath: baseStrength
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8252593488764781597, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
       propertyPath: activeStatColor.b
       value: 0.24705884
       objectReference: {fileID: 0}
@@ -3606,6 +3618,22 @@ PrefabInstance:
     - target: {fileID: 8252593488764781593, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8252593488764781597, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
+      propertyPath: baseHealth
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8252593488764781597, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
+      propertyPath: baseStealth
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8252593488764781597, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
+      propertyPath: baseAccuracy
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8252593488764781597, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
+      propertyPath: baseStrength
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8252593488764781597, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
       propertyPath: activeStatColor.b
@@ -4516,6 +4544,18 @@ PrefabInstance:
     - target: {fileID: 8252593488764781593, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8252593488764781597, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
+      propertyPath: baseStealth
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8252593488764781597, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
+      propertyPath: baseAccuracy
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8252593488764781597, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
+      propertyPath: baseStrength
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8252593488764781597, guid: d8455dff1df4a5c4d86e36b1b474eefd, type: 3}
       propertyPath: activeStatColor.b
