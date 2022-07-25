@@ -6,6 +6,8 @@ using UnityEngine.SceneManagement;
 
 public class CardManager : MonoBehaviour
 {
+    UIManager uiManager;
+
     // Character Cards
     private List<Transform> characterRosterPositions;
     private List<Transform> characterTeamPositions;
@@ -16,21 +18,9 @@ public class CardManager : MonoBehaviour
     private bool gameLoaded;
     private bool[] availableCharacterTeamPositions;
     public bool fullTeamSelected;
-    
-
-    // GUI
-    private GameObject rosterPanel;
-    private GameObject boardPanel;
-    private GameObject teamPanel;
-    private GameObject bossPanel;
-    private Slider turnTracker;
-    private bool outOfTurns;
-    private Button encounterButton;
-    private Button rollButton;
-    private Text instructionText;
-    private Text resultText;
 
     // Encounters
+    private bool outOfTurns;
     private bool inEncounter;
     private bool hasRolled;
     private List<EncounterCard> encounterDeck;
@@ -41,13 +31,13 @@ public class CardManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        uiManager = GameObject.Find("GameManager").GetComponent<UIManager>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(SceneManager.GetActiveScene().name == "GameScene" && PanelsAreLoaded() == false)
+        if(SceneManager.GetActiveScene().name == "GameScene" && uiManager.GamePanelsAreLoaded() == false)
         {
             InitialGameLoad();
         }
@@ -60,11 +50,6 @@ public class CardManager : MonoBehaviour
         LoadCharacterCards();
         LoadEncounters();
         LoadGamePanels();
-    }
-
-    private bool PanelsAreLoaded()
-    {
-        return (rosterPanel != null && boardPanel != null && teamPanel != null && bossPanel != null);
     }
 
     /// <summary>
@@ -104,36 +89,13 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void LoadGamePanels()
     {
-        rosterPanel = GameObject.Find("RosterPanel");
-        boardPanel = GameObject.Find("BoardPanel");
-        teamPanel = GameObject.Find("TeamPanel");
-        bossPanel = GameObject.Find("BossPanel");
-
-        turnTracker = boardPanel.GetComponentInChildren<Slider>();
-        instructionText = GameObject.Find("InstructionText").GetComponent<Text>();
-        resultText = GameObject.Find("ResultText").GetComponent<Text>();
-
-        Button[] boardButtons = boardPanel.GetComponentsInChildren<Button>();
-        foreach(Button button in boardButtons)
-        {
-            button.onClick.RemoveAllListeners();
-            if (button.name == "EncounterButton")
-            {
-                encounterButton = button;
-                button.onClick.AddListener(DrawEncounter);
-                button.enabled = true;
-            }
-            else if(button.name == "DiceRollButton")
-            {
-                rollButton = button;
-                button.onClick.AddListener(HandleRoll);
-                button.enabled = false;
-            }
-        }
-
-        DisplayRoster();
+        uiManager.LoadGamePanels();
+        uiManager.DisplayRosterPanel();
     }
 
+    /// <summary>
+    /// Set up the list of encounter cards and their positions
+    /// </summary>
     private void LoadEncounters()
     {
         encounterDeck = new List<EncounterCard>();
@@ -147,64 +109,48 @@ public class CardManager : MonoBehaviour
         }
     }
 
-    private void LoadBossEncounter()
-    {
-        rosterPanel.SetActive(false);
-        boardPanel.SetActive(false);
-        bossPanel.SetActive(true);
-
-        Text bossText = bossPanel.GetComponentInChildren<Text>();
-        bossText.text = "BOSS: The Sorcerer";
-    }
-
-    private void DisplayRoster()
-    {
-        rosterPanel.SetActive(true);
-        boardPanel.SetActive(false);
-        bossPanel.SetActive(false);
-    }
-
+    /// <summary>
+    /// Call the matching uiManager method, allowing for use with Invoke
+    /// </summary>
     private void DisplayBoard()
     {
-        rosterPanel.SetActive(false);
-        boardPanel.SetActive(true);
-        bossPanel.SetActive(false);
-    }
-
-    private void UpdateButtons()
-    {
-        encounterButton.enabled = (!inEncounter && !outOfTurns);
-        rollButton.enabled = (inEncounter && encounterCharacterSelected && !hasRolled);
+        uiManager.DisplayBoardPanel();
     }
 
     /// <summary>
-    /// Increments the turn timer by the given amount.
+    /// Call the matching uiManager method, allowing for use with Invoke
     /// </summary>
-    /// <param name="amount">The amount to increment the turn tracker by</param>
-    /// <returns>True if the tracker has reached the maximum</returns>
-    private bool IncrementTurnTracker(int amount)
+    private void DisplayBoss()
     {
-        if((turnTracker.value + amount) < turnTracker.maxValue)
-        {
-            turnTracker.value += amount;
-            return false;
-        }
-        else
-        {
-            turnTracker.value = turnTracker.maxValue;
-            return true;
-        }
+        uiManager.DisplayBossPanel();
+    }
+
+    /// <summary>
+    /// Enables/disable the card and dice buttons based on the state of the game
+    /// </summary>
+    private void UpdateButtons()
+    {
+        uiManager.UpdateGameButtons(inEncounter, outOfTurns, encounterCharacterSelected, hasRolled);
+    }
+
+    /// <summary>
+    /// Update the outOfTurns bool based on the incremented tracker
+    /// </summary>
+    /// <param name="amount"></param>
+    private void IncrementTurnTracker(int amount)
+    {
+        outOfTurns = uiManager.IncrementTurnTracker(amount);
     }
 
     private void DisplayEncounterResult(int rollValue, string description)
     {
-        resultText.text = $"You rolled a {rollValue} and {description}";
+        uiManager.UpdateResultText($"You rolled a {rollValue} and {description}");
     }
 
     /// <summary>
     /// If there are still turns available, pull a random card out of the encounter deck and display it.
     /// </summary>
-    private void DrawEncounter()
+    public void DrawEncounter()
     {
         if(outOfTurns == false)
         {
@@ -215,7 +161,7 @@ public class CardManager : MonoBehaviour
             currentEncounter.transform.position = encounterCardPosition.position;
             inEncounter = true;
             hasRolled = false;
-            instructionText.text = "Choose a Character";
+            uiManager.UpdateInstructionText("Choose a Character");
             UpdateButtons();
         }
     }
@@ -229,21 +175,21 @@ public class CardManager : MonoBehaviour
         encounterCharacterSelected = false;
         MoveToTeamPosition(currentCharacter);
         currentCharacter.UnselectCharacter();
-        outOfTurns = IncrementTurnTracker(1);
+        IncrementTurnTracker(1);
         currentEncounter.gameObject.SetActive(false);
         if (outOfTurns == false)
         {
-            instructionText.text = "Draw an Encounter";
-            resultText.text = "";
+            uiManager.UpdateInstructionText("Draw an Encounter");
+            uiManager.UpdateResultText("");
             UpdateButtons();
         }
         else
         {
-            Invoke(nameof(LoadBossEncounter), .5f);
+            Invoke(nameof(DisplayBoss), .5f);
         }
     }
 
-    private void HandleRoll()
+    public void HandleRoll()
     {
         if(inEncounter == true && encounterCharacterSelected == true && hasRolled == false)
         {
@@ -357,7 +303,7 @@ public class CardManager : MonoBehaviour
             characterCard.SelectCharacter();
             encounterCharacterSelected = true;
             MoveToEncounterPosition(currentCharacter);
-            instructionText.text = "Roll the Dice";
+            uiManager.UpdateInstructionText("Roll the Dice");
             UpdateButtons();
         }
     }

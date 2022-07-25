@@ -8,7 +8,7 @@ public class GraphicsManager : MonoBehaviour
     // Default values 
     private int width = 1920;
     private int height = 1080;
-    private bool fullscreen = false;
+    private bool fullscreen = true;
 
     public void SetResolution(Dropdown resolutionDropdown)
     {
