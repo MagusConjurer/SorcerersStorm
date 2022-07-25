@@ -195,13 +195,13 @@ public class CardManager : MonoBehaviour
         {
             hasRolled = true;
             // Dice roll + character stat
-            int totalRollValue = Random.Range(1, 6) + GetEncounterStat();
+            int totalRollValue = Random.Range(1, 6) + GetEncounterStatValue();
             bool isWin = currentEncounter.IsResultWin(totalRollValue);
-            string resultAction = currentEncounter.ResultAction(isWin);
+            string resultAction = (isWin == true ? currentEncounter.GetWinAction() : currentEncounter.GetLossAction());
             string resultDescription = HandleEncounterAction(resultAction, isWin);
             DisplayEncounterResult(totalRollValue, resultDescription);
             UpdateButtons();
-            Invoke(nameof(EndEncounter), 1.0f);
+            Invoke(nameof(EndEncounter), 2.0f);
         }
     }
 
@@ -210,28 +210,54 @@ public class CardManager : MonoBehaviour
         int amount = currentEncounter.ResultAmount(isWin);
         switch (actionType)
         {
-            case "Item":
-                return $"gained {amount} item.";
+            case "Turn":
+                if(isWin)
+                {
+                    return $"are now {amount} turn(s) closer.";
+                }
+                else
+                {
+                    return $"now it's going to take an extra {amount} turn(s).";
+                }
             case "Health":
                 currentCharacter.DecreaseHealth(amount);
                 return $"lost {amount} health.";
             case "Strength":
                 currentCharacter.DecreaseStrength(amount);
                 return $"lost {amount} strength.";
+            case "Accuracy":
+                currentCharacter.DecreaseAccuracy(amount);
+                return $"lost {amount} accuracy.";
+            case "Stealth":
+                currentCharacter.DecreaseStealth(amount);
+                return $"lost {amount} stealth.";
             default:
                 return "lost nothing.";
         }
     }
 
-    private int GetEncounterStat()
+    private int GetEncounterStatValue()
     {
         switch (currentEncounter.GetEncounterType())
         {
             case "Enemy":
-                return currentCharacter.GetStrength();
+                string statType = currentEncounter.GetWinAction();
+                if (statType == "Strength")
+                {
+                    return currentCharacter.GetStrength();
+                }
+                else if (statType == "Accuracy")
+                {
+                    return currentCharacter.GetAccuracy();
+                }
+                else
+                {
+                    return currentCharacter.GetStealth();
+                }
             case "Trap":
                 return 0;
-            case "SkillCheck":
+            case "Item":
+                // TODO: Implement item storage for keys
                 return 0;
             case "Unlockable":
                 return 0;

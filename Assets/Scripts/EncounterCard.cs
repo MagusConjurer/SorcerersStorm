@@ -7,10 +7,7 @@ public class EncounterCard : Card
 {
     [SerializeField] private Type EncounterType;
     [SerializeField, Range(1, 6)] private int enemyStrength;
-    [SerializeField] private List<int> winCriteria = new List<int> {7,8,9,10,11,12};
-    [SerializeField] private List<int> loseCriteria = new List<int> {1,2,3,4,5,6};
-
-    
+    [SerializeField] private List<int> winCriteria;    
 
     [SerializeField] private Action WinResult;
     [SerializeField, Range(1, 2)] private int WinResultAmount;
@@ -27,16 +24,13 @@ public class EncounterCard : Card
         return winCriteria.Contains(rollValue);
     }
 
-    public string ResultAction(bool isWin)
+    public string GetWinAction()
     {
-        if(isWin)
-        {
-            return WinResult.ToString();
-        }
-        else
-        {
-            return LossResult.ToString();
-        }
+        return WinResult.ToString();
+    }
+    public string GetLossAction()
+    {
+        return LossResult.ToString();
     }
 
     public int ResultAmount(bool isWin)
@@ -53,16 +47,18 @@ public class EncounterCard : Card
 
     private enum Action
     {
-        Item,
+        Turn,
         Health,
-        Strength
+        Strength,
+        Accuracy,
+        Stealth
     }
 
     private enum Type 
     {
+        Item,
         Enemy, 
-        Trap, 
-        SkillCheck, 
+        Trap,
         Unlockable
     }
 }
