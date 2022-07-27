@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7392303957966187561}
   - component: {fileID: 7392303957966187566}
   m_Layer: 6
-  m_Name: AccuracyEnemyCard
+  m_Name: EnemyCard_Strength
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -72,7 +72,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 9020956086809928064, guid: ac58c6a4606831741ad762bcabfafbb5, type: 3}
+  m_Sprite: {fileID: -7925268307452391636, guid: ac58c6a4606831741ad762bcabfafbb5, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -102,5 +102,5 @@ MonoBehaviour:
   winCriteria: 0700000008000000090000000a0000000b0000000c000000
   WinResult: 3
   WinResultAmount: 1
-  LossResult: 1
+  LossResult: 2
   LossResultAmount: 1

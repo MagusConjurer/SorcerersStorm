@@ -11,9 +11,12 @@ public class CharacterCard : Card
 
     private Transform border;
 
+
     public int placedIndex;
     public bool isAlive;
     public bool inTeam;
+    public bool HasKey { get; set; }
+
 
     protected override void Start()
     {
@@ -86,6 +89,26 @@ public class CharacterCard : Card
     public void DecreaseStealth(int value)
     {
         SetStealth(currentStealth - value);
+    }
+
+    public void IncreaseHealth(int value)
+    {
+        SetHealth(currentHealth + value);
+    }
+
+    public void IncreaseStrength(int value)
+    {
+        SetStrength(currentStrength + value);
+    }
+
+    public void IncreaseAccuracy(int value)
+    {
+        SetAccuracy(currentAccuracy + value);
+    }
+
+    public void IncreaseStealth(int value)
+    {
+        SetStealth(currentStealth + value);
     }
 
     private void SetHealth(int value)

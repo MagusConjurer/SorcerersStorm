@@ -241,10 +241,10 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void UpdateGameButtons(bool inEncounter, bool outOfTurns, bool encounterCharacterSelected, bool hasRolled)
+    public void UpdateGameButtons(bool canDrawEncounter, bool canRoll)
     {
-        encounterButton.enabled = (!inEncounter && !outOfTurns);
-        rollButton.enabled = (inEncounter && encounterCharacterSelected && !hasRolled);
+        encounterButton.enabled = canDrawEncounter;
+        rollButton.enabled = canRoll;
     }
 
     /// <summary>

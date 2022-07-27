@@ -24,9 +24,14 @@ public class CardManager : MonoBehaviour
     private bool inEncounter;
     private bool hasRolled;
     private List<EncounterCard> encounterDeck;
+    private List<EncounterCard> itemDeck;
     private EncounterCard currentEncounter;
     private Transform encounterCardPosition;
     private Transform encounterCharacterPosition;
+    private EncounterCard firstItem;
+    private EncounterCard secondItem;
+    private Transform firstItemCardPosition;
+    private Transform secondItemCardPosition;
 
     // Start is called before the first frame update
     void Start()
@@ -102,10 +107,18 @@ public class CardManager : MonoBehaviour
         encounterCardPosition = GameObject.Find("EncounterCardPosition").GetComponent<Transform>();
         encounterCharacterPosition = GameObject.Find("EncounterCharacterPosition").GetComponent<Transform>();
 
+        itemDeck = new List<EncounterCard>();
+        firstItemCardPosition = GameObject.Find("FirstItemCardPosition").GetComponent<Transform>();
+        secondItemCardPosition = GameObject.Find("SecondItemCardPosition").GetComponent<Transform>();
+
         encounterDeck.AddRange(GameObject.Find("Encounters").GetComponentsInChildren<EncounterCard>());
         foreach (EncounterCard card in encounterDeck)
         {
             card.gameObject.SetActive(false);
+            if(card.GetEncounterType() == "Item")
+            {
+                itemDeck.Add(card);
+            }
         }
     }
 
@@ -130,7 +143,11 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void UpdateButtons()
     {
-        uiManager.UpdateGameButtons(inEncounter, outOfTurns, encounterCharacterSelected, hasRolled);
+        bool isEnemy = (currentEncounter.GetEncounterType() == "Enemy");
+
+        bool canDrawEncounter = (!inEncounter && !outOfTurns);
+        bool canRoll = (inEncounter && encounterCharacterSelected && !hasRolled && isEnemy);
+        uiManager.UpdateGameButtons(canDrawEncounter, canRoll);
     }
 
     /// <summary>
@@ -149,6 +166,7 @@ public class CardManager : MonoBehaviour
 
     /// <summary>
     /// If there are still turns available, pull a random card out of the encounter deck and display it.
+    /// When an item is drawn, find and play a second one.
     /// </summary>
     public void DrawEncounter()
     {
@@ -157,8 +175,30 @@ public class CardManager : MonoBehaviour
             int randIndex = Random.Range(0, encounterDeck.Count);
             currentEncounter = encounterDeck[randIndex];
             encounterDeck.RemoveAt(randIndex);
-            currentEncounter.gameObject.SetActive(true);
-            currentEncounter.transform.position = encounterCardPosition.position;
+
+            if(currentEncounter.GetEncounterType() == "Enemy")
+            {
+                currentEncounter.gameObject.SetActive(true);
+                currentEncounter.transform.position = encounterCardPosition.position;
+            }
+            else if(currentEncounter.GetEncounterType() == "Item")
+            {
+                // Use the drawn card as the first item
+                firstItem = currentEncounter;
+                firstItem.transform.position = firstItemCardPosition.position;
+                firstItem.gameObject.SetActive(true);
+                itemDeck.Remove(firstItem);
+
+                // Find a second item card in the deck
+                int randItemIndex = Random.Range(0, itemDeck.Count);
+                secondItem = itemDeck[randItemIndex];
+                secondItem.transform.position = secondItemCardPosition.position;
+                secondItem.gameObject.SetActive(true);
+                itemDeck.RemoveAt(randItemIndex);
+                encounterDeck.Remove(secondItem);
+            }
+            
+            
             inEncounter = true;
             hasRolled = false;
             uiManager.UpdateInstructionText("Choose a Character");
@@ -176,7 +216,17 @@ public class CardManager : MonoBehaviour
         MoveToTeamPosition(currentCharacter);
         currentCharacter.UnselectCharacter();
         IncrementTurnTracker(1);
-        currentEncounter.gameObject.SetActive(false);
+
+        if(currentEncounter.GetEncounterType() == "Enemy")
+        {
+            currentEncounter.gameObject.SetActive(false);
+        }
+        else if (currentEncounter.GetEncounterType()=="Item")
+        {
+            firstItem.gameObject.SetActive(false);
+            secondItem.gameObject.SetActive(false);
+        }
+        
         if (outOfTurns == false)
         {
             uiManager.UpdateInstructionText("Draw an Encounter");
@@ -198,27 +248,18 @@ public class CardManager : MonoBehaviour
             int totalRollValue = Random.Range(1, 6) + GetEncounterStatValue();
             bool isWin = currentEncounter.IsResultWin(totalRollValue);
             string resultAction = (isWin == true ? currentEncounter.GetWinAction() : currentEncounter.GetLossAction());
-            string resultDescription = HandleEncounterAction(resultAction, isWin);
+            string resultDescription = HandleEnemyEncounterAction(resultAction, isWin);
             DisplayEncounterResult(totalRollValue, resultDescription);
             UpdateButtons();
             Invoke(nameof(EndEncounter), 2.0f);
         }
     }
 
-    private string HandleEncounterAction(string actionType, bool isWin)
+    private string HandleEnemyEncounterAction(string actionType, bool isWin)
     {
         int amount = currentEncounter.ResultAmount(isWin);
         switch (actionType)
         {
-            case "Turn":
-                if(isWin)
-                {
-                    return $"are now {amount} turn(s) closer.";
-                }
-                else
-                {
-                    return $"now it's going to take an extra {amount} turn(s).";
-                }
             case "Health":
                 currentCharacter.DecreaseHealth(amount);
                 return $"lost {amount} health.";
@@ -233,6 +274,53 @@ public class CardManager : MonoBehaviour
                 return $"lost {amount} stealth.";
             default:
                 return "lost nothing.";
+        }
+    }
+
+    private string HandleItemEncounterAction(string actionType)
+    {
+        int increaseAmount = currentEncounter.ResultAmount(true);
+        int decreaseAmount = currentEncounter.ResultAmount(false);
+        switch (actionType)
+        {
+            case "Key":
+                currentCharacter.HasKey = true;
+                return $"found a key.";
+            case "Health":
+                currentCharacter.IncreaseHealth(increaseAmount);
+                currentCharacter.DecreaseStealth(decreaseAmount);
+                return $"gained {increaseAmount} health, but lost {decreaseAmount} stealth.";
+            case "Strength":
+                currentCharacter.IncreaseStrength(increaseAmount);
+                currentCharacter.DecreaseHealth(decreaseAmount);
+                return $"gained {increaseAmount} strength, but lost {decreaseAmount} health.";
+            case "Accuracy":
+                currentCharacter.IncreaseAccuracy(increaseAmount);
+                currentCharacter.DecreaseStrength(decreaseAmount);
+                return $"gained {increaseAmount} accuracy, but lost {decreaseAmount} strength.";
+            case "Stealth":
+                currentCharacter.IncreaseStealth(increaseAmount);
+                currentCharacter.DecreaseAccuracy(decreaseAmount);
+                return $"gained {increaseAmount} stealth, but lost {decreaseAmount} accuracy.";
+            default:
+                return "got nothing.";
+        }
+    }
+
+    private string HandleUnlockableEncounterAction(bool isWin)
+    {
+        // TODO: add stealth piece   
+        if (isWin)
+        {
+            int amount = currentEncounter.ResultAmount(true);
+            IncrementTurnTracker(amount);
+            return $"are now {amount} turn(s) closer.";
+        }
+        else
+        {
+            int amount = currentEncounter.ResultAmount(false);
+            IncrementTurnTracker(-amount);
+            return $"now it's going to take an extra {amount} turn(s).";
         }
     }
 

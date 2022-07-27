@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7392303957966187561}
   - component: {fileID: 7392303957966187566}
   m_Layer: 6
-  m_Name: StealthEnemyCard
+  m_Name: EnemyCard_Stealth
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -100,7 +100,7 @@ MonoBehaviour:
   EncounterType: 1
   enemyStrength: 3
   winCriteria: 0700000008000000090000000a0000000b0000000c000000
-  WinResult: 4
+  WinResult: 5
   WinResultAmount: 1
-  LossResult: 1
+  LossResult: 2
   LossResultAmount: 1

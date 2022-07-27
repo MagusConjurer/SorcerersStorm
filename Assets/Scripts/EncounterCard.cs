@@ -48,6 +48,7 @@ public class EncounterCard : Card
     private enum Action
     {
         Turn,
+        Key,
         Health,
         Strength,
         Accuracy,
