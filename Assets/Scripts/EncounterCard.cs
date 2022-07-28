@@ -45,6 +45,23 @@ public class EncounterCard : Card
         }
     }
 
+    private void OnMouseDown()
+    {
+        if(EncounterType.ToString() == "Item")
+        {
+            if (selected == false && cardManager.ItemIsSelected() == false)
+            {
+                SelectCard();
+                cardManager.UpdateSelectedItem(this);
+            }
+            else if (selected == true && cardManager.ItemIsSelected() == true)
+            {
+                UnselectCard();
+                cardManager.UpdateSelectedItem(this);
+            }
+        }
+    }
+
     private enum Action
     {
         Turn,

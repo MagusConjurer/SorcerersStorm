@@ -9,9 +9,6 @@ public class CharacterCard : Card
     [SerializeField] private List<string> possibleTypes = new List<string>{ "Health", "Strength", "Accuracy", "Stealth" };
     [SerializeField] private Color inactiveStatColor, activeStatColor;
 
-    private Transform border;
-
-
     public int placedIndex;
     public bool isAlive;
     public bool inTeam;
@@ -21,8 +18,7 @@ public class CharacterCard : Card
     protected override void Start()
     {
         base.Start();
-        border = transform.Find("Border");
-        border.GetComponent<SpriteRenderer>().enabled = false;
+
 
         SetHealth(baseHealth);
         SetStrength(baseStrength);
@@ -38,17 +34,6 @@ public class CharacterCard : Card
             isAlive = false;
             HideCard();
         }
-    }
-
-    public void UnselectCharacter()
-    {
-        selected = false;
-        border.GetComponent<SpriteRenderer>().enabled = false;
-    }
-    public void SelectCharacter()
-    {
-        selected = true;
-        border.GetComponent<SpriteRenderer>().enabled = true;
     }
 
     public int GetHealth()

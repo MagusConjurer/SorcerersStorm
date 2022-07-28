@@ -21,7 +21,9 @@ public class CardManager : MonoBehaviour
 
     // Encounters
     private bool outOfTurns;
-    private bool inEncounter;
+    private bool inEnemyEncounter;
+    private bool inItemEncounter;
+    private bool encounterItemSelected;
     private bool hasRolled;
     private List<EncounterCard> encounterDeck;
     private List<EncounterCard> itemDeck;
@@ -145,9 +147,10 @@ public class CardManager : MonoBehaviour
     {
         bool isEnemy = (currentEncounter.GetEncounterType() == "Enemy");
 
-        bool canDrawEncounter = (!inEncounter && !outOfTurns);
-        bool canRoll = (inEncounter && encounterCharacterSelected && !hasRolled && isEnemy);
-        uiManager.UpdateGameButtons(canDrawEncounter, canRoll);
+        bool canDrawEncounter = (!inEnemyEncounter && !inItemEncounter && !outOfTurns);
+        bool canRoll = (inEnemyEncounter && encounterCharacterSelected && !hasRolled && isEnemy);
+        bool needsToConfirmItem = (inItemEncounter && encounterItemSelected && encounterCharacterSelected);
+        uiManager.UpdateGameButtons(canDrawEncounter, canRoll, needsToConfirmItem);
     }
 
     /// <summary>
@@ -159,9 +162,22 @@ public class CardManager : MonoBehaviour
         outOfTurns = uiManager.IncrementTurnTracker(amount);
     }
 
+    /// <summary>
+    /// Used for enemy encounters
+    /// </summary>
+    /// <param name="rollValue">Sum of dice roll and character stat</param>
+    /// <param name="description">Result of the action</param>
     private void DisplayEncounterResult(int rollValue, string description)
     {
         uiManager.UpdateResultText($"You rolled a {rollValue} and {description}");
+    }
+    /// <summary>
+    /// Used for item encounters
+    /// </summary>
+    /// <param name="description">Result of the action</param>
+    private void DisplayEncounterResult(string description)
+    {
+        uiManager.UpdateResultText(description);
     }
 
     /// <summary>
@@ -180,6 +196,10 @@ public class CardManager : MonoBehaviour
             {
                 currentEncounter.gameObject.SetActive(true);
                 currentEncounter.transform.position = encounterCardPosition.position;
+
+                inEnemyEncounter = true;
+                hasRolled = false;
+                uiManager.UpdateInstructionText("Choose a Character");
             }
             else if(currentEncounter.GetEncounterType() == "Item")
             {
@@ -196,12 +216,12 @@ public class CardManager : MonoBehaviour
                 secondItem.gameObject.SetActive(true);
                 itemDeck.RemoveAt(randItemIndex);
                 encounterDeck.Remove(secondItem);
+
+                inItemEncounter = true;
+                encounterItemSelected = false;
+                uiManager.UpdateInstructionText("Choose an Item");   
             }
             
-            
-            inEncounter = true;
-            hasRolled = false;
-            uiManager.UpdateInstructionText("Choose a Character");
             UpdateButtons();
         }
     }
@@ -211,10 +231,10 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void EndEncounter()
     {
-        inEncounter = false;
+        inEnemyEncounter = false;
         encounterCharacterSelected = false;
         MoveToTeamPosition(currentCharacter);
-        currentCharacter.UnselectCharacter();
+        currentCharacter.UnselectCard();
         IncrementTurnTracker(1);
 
         if(currentEncounter.GetEncounterType() == "Enemy")
@@ -241,7 +261,7 @@ public class CardManager : MonoBehaviour
 
     public void HandleRoll()
     {
-        if(inEncounter == true && encounterCharacterSelected == true && hasRolled == false)
+        if(inEnemyEncounter == true && encounterCharacterSelected == true && hasRolled == false)
         {
             hasRolled = true;
             // Dice roll + character stat
@@ -253,6 +273,48 @@ public class CardManager : MonoBehaviour
             UpdateButtons();
             Invoke(nameof(EndEncounter), 2.0f);
         }
+    }
+
+    public bool ItemIsSelected()
+    {
+        return encounterItemSelected;
+    }
+
+    public void UpdateSelectedItem(EncounterCard itemCard)
+    {
+        if(inItemEncounter == true && encounterItemSelected == false)
+        {
+            currentEncounter = itemCard;
+            encounterItemSelected = true;
+            uiManager.UpdateInstructionText("Select a Character");
+        }
+        else if(inItemEncounter == true && encounterItemSelected == true)
+        {
+            encounterItemSelected = false;
+            uiManager.UpdateInstructionText("Select an Item");
+        }
+    }
+
+    public void ConfirmItem()
+    {
+        string resultDescription = HandleItemEncounterAction(currentEncounter.GetWinAction());
+        DisplayEncounterResult(resultDescription);
+
+        if(currentEncounter == firstItem)
+        {
+            firstItem.transform.position = encounterCardPosition.position;
+            secondItem.gameObject.SetActive(false);
+        }
+        else
+        {
+            secondItem.transform.position = encounterCardPosition.position;
+            firstItem.gameObject.SetActive(false);
+        }
+
+        inItemEncounter = false;
+        encounterItemSelected = false;
+        UpdateButtons();
+        Invoke(nameof(EndEncounter), 2.0f);
     }
 
     private string HandleEnemyEncounterAction(string actionType, bool isWin)
@@ -285,25 +347,25 @@ public class CardManager : MonoBehaviour
         {
             case "Key":
                 currentCharacter.HasKey = true;
-                return $"found a key.";
+                return $"You gained a key.";
             case "Health":
                 currentCharacter.IncreaseHealth(increaseAmount);
                 currentCharacter.DecreaseStealth(decreaseAmount);
-                return $"gained {increaseAmount} health, but lost {decreaseAmount} stealth.";
+                return $"You chose armour and gained {increaseAmount} health, but lost {decreaseAmount} stealth.";
             case "Strength":
                 currentCharacter.IncreaseStrength(increaseAmount);
                 currentCharacter.DecreaseHealth(decreaseAmount);
-                return $"gained {increaseAmount} strength, but lost {decreaseAmount} health.";
+                return $"You chose the weapon and gained {increaseAmount} strength, but lost {decreaseAmount} health.";
             case "Accuracy":
                 currentCharacter.IncreaseAccuracy(increaseAmount);
                 currentCharacter.DecreaseStrength(decreaseAmount);
-                return $"gained {increaseAmount} accuracy, but lost {decreaseAmount} strength.";
+                return $"You chose the seeing glass and gained {increaseAmount} accuracy, but lost {decreaseAmount} strength.";
             case "Stealth":
                 currentCharacter.IncreaseStealth(increaseAmount);
                 currentCharacter.DecreaseAccuracy(decreaseAmount);
-                return $"gained {increaseAmount} stealth, but lost {decreaseAmount} accuracy.";
+                return $"You chose the camoflauge and gained {increaseAmount} stealth, but lost {decreaseAmount} accuracy.";
             default:
-                return "got nothing.";
+                return "You chose nothing.";
         }
     }
 
@@ -355,7 +417,7 @@ public class CardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when a card is clicked on
+    /// Called when a character card is clicked on
     /// </summary>
     /// <param name="characterCard"></param>
     public void AddToTeam(CharacterCard characterCard)
@@ -364,7 +426,7 @@ public class CardManager : MonoBehaviour
         {
             characterSelectedDeck.Add(characterCard);
             characterCard.inTeam = true;
-            characterCard.SelectCharacter();
+            characterCard.SelectCard();
             if (characterSelectedDeck.Count == 4)
             {
                 fullTeamSelected = true;
@@ -386,7 +448,7 @@ public class CardManager : MonoBehaviour
             {
                 characterCard.placedIndex = i;
                 MoveToTeamPosition(characterCard);
-                characterCard.UnselectCharacter();
+                characterCard.UnselectCard();
 
                 availableCharacterTeamPositions[i] = false;
                 characterDeck.Remove(characterCard);
@@ -411,13 +473,22 @@ public class CardManager : MonoBehaviour
 
     public void SetCurrentCharacter(CharacterCard characterCard)
     {
-        if (inEncounter == true && encounterCharacterSelected == false)
+        if (inEnemyEncounter && !encounterCharacterSelected)
         {
             currentCharacter = characterCard;
-            characterCard.SelectCharacter();
+            characterCard.SelectCard();
             encounterCharacterSelected = true;
             MoveToEncounterPosition(currentCharacter);
             uiManager.UpdateInstructionText("Roll the Dice");
+            UpdateButtons();
+        }
+        else if(inItemEncounter && encounterItemSelected && !encounterCharacterSelected)
+        {
+            currentCharacter = characterCard;
+            characterCard.SelectCard();
+            encounterCharacterSelected = true;
+            MoveToEncounterPosition(currentCharacter);
+            uiManager.UpdateInstructionText("Confirm Selection");
             UpdateButtons();
         }
     }

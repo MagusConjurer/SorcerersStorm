@@ -24,6 +24,7 @@ public class UIManager : MonoBehaviour
     private Slider turnTracker;
     private Button encounterButton;
     private Button rollButton;
+    private Button confirmItemButton;
     private Text instructionText;
     private Text resultText;
 
@@ -189,6 +190,13 @@ public class UIManager : MonoBehaviour
                 button.onClick.AddListener(cardManager.HandleRoll);
                 button.enabled = false;
             }
+            else if (button.name == "ConfirmItemButton")
+            {
+                confirmItemButton = button;
+                button.onClick.AddListener(cardManager.ConfirmItem);
+                button.enabled = false;
+                confirmItemButton.gameObject.SetActive(false);
+            }
         }
     }
 
@@ -241,10 +249,12 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void UpdateGameButtons(bool canDrawEncounter, bool canRoll)
+    public void UpdateGameButtons(bool canDrawEncounter, bool canRoll, bool needsToConfirmItem)
     {
         encounterButton.enabled = canDrawEncounter;
         rollButton.enabled = canRoll;
+        confirmItemButton.enabled = needsToConfirmItem;
+        confirmItemButton.gameObject.SetActive(needsToConfirmItem);
     }
 
     /// <summary>
