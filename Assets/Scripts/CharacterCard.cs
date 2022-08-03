@@ -12,8 +12,6 @@ public class CharacterCard : Card
     public int placedIndex;
     public bool isAlive;
     public bool inTeam;
-    public bool HasKey { get; set; }
-
 
     protected override void Start()
     {

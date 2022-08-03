@@ -95,7 +95,7 @@ GameObject:
   - component: {fileID: 7392303957966187566}
   - component: {fileID: -7188878919871707867}
   m_Layer: 6
-  m_Name: ItemCard_Camoflauge
+  m_Name: ItemCard_Camouflage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

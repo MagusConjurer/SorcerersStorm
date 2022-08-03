@@ -27,6 +27,8 @@ public class UIManager : MonoBehaviour
     private Button confirmItemButton;
     private Text instructionText;
     private Text resultText;
+    private Text keyCountText;
+    private int currentKeyCount;
 
     // Start is called before the first frame update
     void Start()
@@ -173,6 +175,8 @@ public class UIManager : MonoBehaviour
         turnTracker = boardPanel.GetComponentInChildren<Slider>();
         instructionText = GameObject.Find("InstructionText").GetComponent<Text>();
         resultText = GameObject.Find("ResultText").GetComponent<Text>();
+        keyCountText = GameObject.Find("KeyCountText").GetComponent<Text>();
+        currentKeyCount = 0;
 
         Button[] boardButtons = boardPanel.GetComponentsInChildren<Button>();
         foreach (Button button in boardButtons)
@@ -276,13 +280,31 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Used to update the result text displayed during encounters
+    /// </summary>
+    /// <param name="newText"></param>
     public void UpdateResultText(string newText)
     {
         resultText.text = newText;
     }
 
+    /// <summary>
+    /// Used to update the instruction text during encounters
+    /// </summary>
+    /// <param name="newText">The instructions</param>
     public void UpdateInstructionText(string newText)
     {
         instructionText.text = newText;
+    }
+
+    /// <summary>
+    /// Used to update the number of keys the player has
+    /// </summary>
+    /// <param name="toAdd">Amount to add to the key count</param>
+    public void UpdateKeyCountText(int toAdd)
+    {
+        currentKeyCount += toAdd;
+        keyCountText.text = $"{currentKeyCount}";
     }
 }

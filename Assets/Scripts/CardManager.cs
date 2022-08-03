@@ -346,7 +346,7 @@ public class CardManager : MonoBehaviour
         switch (actionType)
         {
             case "Key":
-                currentCharacter.HasKey = true;
+                uiManager.UpdateKeyCountText(1);
                 return $"You gained a key.";
             case "Health":
                 currentCharacter.IncreaseHealth(increaseAmount);
@@ -363,7 +363,7 @@ public class CardManager : MonoBehaviour
             case "Stealth":
                 currentCharacter.IncreaseStealth(increaseAmount);
                 currentCharacter.DecreaseAccuracy(decreaseAmount);
-                return $"You chose the camoflauge and gained {increaseAmount} stealth, but lost {decreaseAmount} accuracy.";
+                return $"You chose the camouflage and gained {increaseAmount} stealth, but lost {decreaseAmount} accuracy.";
             default:
                 return "You chose nothing.";
         }
