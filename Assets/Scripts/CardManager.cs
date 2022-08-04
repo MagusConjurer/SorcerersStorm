@@ -51,6 +51,9 @@ public class CardManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Used when loading the scene to get/refresh the game
+    /// </summary>
     private void InitialGameLoad()
     {
         outOfTurns = false;
@@ -73,7 +76,9 @@ public class CardManager : MonoBehaviour
         characterTeamPositions = new List<Transform>();
         characterTeamPositions.AddRange(GameObject.Find("TeamPositions").GetComponentsInChildren<Transform>());
         characterTeamPositions.RemoveAt(0);
-        
+
+        encounterCharacterPosition = GameObject.Find("EncounterCharacterPosition").GetComponent<Transform>();
+
         characterDeck = new List<CharacterCard>();
         characterDeck.AddRange(GameObject.Find("CharacterCards").GetComponentsInChildren<CharacterCard>());
         for (int i = 0; i < characterDeck.Count; i++)
@@ -107,14 +112,13 @@ public class CardManager : MonoBehaviour
     private void LoadEncounters()
     {
         encounterDeck = new List<EncounterCard>();
+        encounterDeck.AddRange(GameObject.Find("Encounters").GetComponentsInChildren<EncounterCard>());
         encounterCardPosition = GameObject.Find("EncounterCardPosition").GetComponent<Transform>();
-        encounterCharacterPosition = GameObject.Find("EncounterCharacterPosition").GetComponent<Transform>();
 
         itemDeck = new List<EncounterCard>();
         firstItemCardPosition = GameObject.Find("FirstItemCardPosition").GetComponent<Transform>();
         secondItemCardPosition = GameObject.Find("SecondItemCardPosition").GetComponent<Transform>();
-
-        encounterDeck.AddRange(GameObject.Find("Encounters").GetComponentsInChildren<EncounterCard>());
+        
         foreach (EncounterCard card in encounterDeck)
         {
             card.gameObject.SetActive(false);
@@ -190,9 +194,16 @@ public class CardManager : MonoBehaviour
     {
         if(outOfTurns == false)
         {
-            int randIndex = Random.Range(0, encounterDeck.Count);
-            currentEncounter = encounterDeck[randIndex];
-            encounterDeck.RemoveAt(randIndex);
+            if (encounterDeck.Count == 0)
+            {
+                LoadEncounters();
+            }
+            else
+            {
+                int randIndex = Random.Range(0, encounterDeck.Count);
+                currentEncounter = encounterDeck[randIndex];
+                encounterDeck.RemoveAt(randIndex);
+            }
 
             if(currentEncounter.GetEncounterType() == "Enemy")
             {
@@ -284,6 +295,9 @@ public class CardManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Method called when the Roll button is pressed.
+    /// </summary>
     public void HandleRoll()
     {
         if(encounterCharacterSelected == true && hasRolled == false)
@@ -309,11 +323,17 @@ public class CardManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Method to retrieve whether an item is selected (used in the EncounterCard)
+    /// </summary>
     public bool ItemIsSelected()
     {
         return encounterItemSelected;
     }
 
+    /// <summary>
+    /// Method called when an EncounterCard with the Item type is clicked
+    /// </summary>
     public void UpdateSelectedItem(EncounterCard itemCard)
     {
         if(inItemEncounter == true && encounterItemSelected == false)
@@ -329,6 +349,9 @@ public class CardManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Method called when the Confirm button is pressed during an Item encounter
+    /// </summary>
     public void ConfirmItem()
     {
         string resultDescription = HandleItemEncounterAction(currentEncounter.GetWinAction());
@@ -351,6 +374,12 @@ public class CardManager : MonoBehaviour
         Invoke(nameof(EndEncounter), 2.0f);
     }
 
+    /// <summary>
+    /// Method called during an Enemy encounter.
+    /// </summary>
+    /// <param name="actionType">The win/lose action from the EncounterCard</param>
+    /// <param name="isWin">Was the roll + stat value in the win range</param>
+    /// <returns>A description of what was lost.</returns>
     private string HandleEnemyEncounterAction(string actionType, bool isWin)
     {
         int amount = currentEncounter.ResultAmount(isWin);
@@ -373,6 +402,11 @@ public class CardManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Method called during an Item encounter
+    /// </summary>
+    /// <param name="actionType">The action from the EncounterCard</param>
+    /// <returns>A description of what was gained/lost</returns>
     private string HandleItemEncounterAction(string actionType)
     {
         int increaseAmount = currentEncounter.ResultAmount(true);
@@ -403,6 +437,12 @@ public class CardManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Method called during an Unlockable encounter
+    /// </summary>
+    /// <param name="isWin">A key was available or the roll + stat value in the win range</param>
+    /// <param name="withKey">A key used</param>
+    /// <returns>A description of what was done and how many turns were gained/lost</returns>
     private string HandleUnlockableEncounterAction(bool isWin, bool withKey)
     {
         if (isWin && withKey)
@@ -426,6 +466,9 @@ public class CardManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Method to get the character's stat value for the current encounter type
+    /// </summary>
     private int GetEncounterStatValue()
     {
         switch (currentEncounter.GetEncounterType())
@@ -501,11 +544,19 @@ public class CardManager : MonoBehaviour
         character.transform.position = characterTeamPositions[character.placedIndex].position;
     }
 
+    /// <summary>
+    /// Used during an encounter after the character has been selected
+    /// </summary>
+    /// <param name="character">The selected character card</param>
     private void MoveToEncounterPosition(CharacterCard character)
     {
         character.transform.position = encounterCharacterPosition.position;
     }
 
+    /// <summary>
+    /// Used OnMousedown for a CharacterCard during an encounter
+    /// </summary>
+    /// <param name="characterCard">The card that was clicked</param>
     public void SetCurrentCharacter(CharacterCard characterCard)
     {
         if ((inEnemyEncounter || inUnlockableStealthEncounter) && !encounterCharacterSelected)
