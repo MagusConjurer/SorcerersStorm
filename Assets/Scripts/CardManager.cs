@@ -23,6 +23,7 @@ public class CardManager : MonoBehaviour
     private bool outOfTurns;
     private bool inEnemyEncounter;
     private bool inItemEncounter;
+    private bool inUnlockableStealthEncounter;
     private bool encounterItemSelected;
     private bool hasRolled;
     private List<EncounterCard> encounterDeck;
@@ -50,6 +51,9 @@ public class CardManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Used when loading the scene to get/refresh the game
+    /// </summary>
     private void InitialGameLoad()
     {
         outOfTurns = false;
@@ -72,7 +76,9 @@ public class CardManager : MonoBehaviour
         characterTeamPositions = new List<Transform>();
         characterTeamPositions.AddRange(GameObject.Find("TeamPositions").GetComponentsInChildren<Transform>());
         characterTeamPositions.RemoveAt(0);
-        
+
+        encounterCharacterPosition = GameObject.Find("EncounterCharacterPosition").GetComponent<Transform>();
+
         characterDeck = new List<CharacterCard>();
         characterDeck.AddRange(GameObject.Find("CharacterCards").GetComponentsInChildren<CharacterCard>());
         for (int i = 0; i < characterDeck.Count; i++)
@@ -106,14 +112,13 @@ public class CardManager : MonoBehaviour
     private void LoadEncounters()
     {
         encounterDeck = new List<EncounterCard>();
+        encounterDeck.AddRange(GameObject.Find("Encounters").GetComponentsInChildren<EncounterCard>());
         encounterCardPosition = GameObject.Find("EncounterCardPosition").GetComponent<Transform>();
-        encounterCharacterPosition = GameObject.Find("EncounterCharacterPosition").GetComponent<Transform>();
 
         itemDeck = new List<EncounterCard>();
         firstItemCardPosition = GameObject.Find("FirstItemCardPosition").GetComponent<Transform>();
         secondItemCardPosition = GameObject.Find("SecondItemCardPosition").GetComponent<Transform>();
-
-        encounterDeck.AddRange(GameObject.Find("Encounters").GetComponentsInChildren<EncounterCard>());
+        
         foreach (EncounterCard card in encounterDeck)
         {
             card.gameObject.SetActive(false);
@@ -145,10 +150,11 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void UpdateButtons()
     {
-        bool isEnemy = (currentEncounter.GetEncounterType() == "Enemy");
-
-        bool canDrawEncounter = (!inEnemyEncounter && !inItemEncounter && !outOfTurns);
-        bool canRoll = (inEnemyEncounter && encounterCharacterSelected && !hasRolled && isEnemy);
+        /// Can draw if not in an encounter or out of turns
+        bool canDrawEncounter = (!inEnemyEncounter && !inItemEncounter && !inUnlockableStealthEncounter && !outOfTurns);
+        /// Can roll if in an enemy/unlockable encounter
+        bool canRoll = ((inEnemyEncounter || inUnlockableStealthEncounter) && encounterCharacterSelected && !hasRolled);
+        /// Can confirm if in an item encounter with the item and character selected
         bool needsToConfirmItem = (inItemEncounter && encounterItemSelected && encounterCharacterSelected);
         uiManager.UpdateGameButtons(canDrawEncounter, canRoll, needsToConfirmItem);
     }
@@ -188,9 +194,16 @@ public class CardManager : MonoBehaviour
     {
         if(outOfTurns == false)
         {
-            int randIndex = Random.Range(0, encounterDeck.Count);
-            currentEncounter = encounterDeck[randIndex];
-            encounterDeck.RemoveAt(randIndex);
+            if (encounterDeck.Count == 0)
+            {
+                LoadEncounters();
+            }
+            else
+            {
+                int randIndex = Random.Range(0, encounterDeck.Count);
+                currentEncounter = encounterDeck[randIndex];
+                encounterDeck.RemoveAt(randIndex);
+            }
 
             if(currentEncounter.GetEncounterType() == "Enemy")
             {
@@ -221,6 +234,24 @@ public class CardManager : MonoBehaviour
                 encounterItemSelected = false;
                 uiManager.UpdateInstructionText("Choose an Item");   
             }
+            else if (currentEncounter.GetEncounterType() == "Unlockable")
+            {
+                currentEncounter.gameObject.SetActive(true);
+                currentEncounter.transform.position = encounterCardPosition.position;
+
+                if (uiManager.GetKeyCount() > 0)
+                {
+                    uiManager.UpdateKeyCountText(-1);
+                    uiManager.UpdateResultText(HandleUnlockableEncounterAction(true, true));
+                    Invoke(nameof(EndEncounter), 2.0f);
+                }
+                else
+                {
+                    inUnlockableStealthEncounter = true;
+                    hasRolled = false;
+                    uiManager.UpdateInstructionText("Choose a Character");
+                }
+            }
             
             UpdateButtons();
         }
@@ -232,12 +263,17 @@ public class CardManager : MonoBehaviour
     private void EndEncounter()
     {
         inEnemyEncounter = false;
+        inItemEncounter = false;
+        inUnlockableStealthEncounter = false;
         encounterCharacterSelected = false;
-        MoveToTeamPosition(currentCharacter);
-        currentCharacter.UnselectCard();
+        if(currentCharacter != null)
+        {
+            MoveToTeamPosition(currentCharacter);
+            currentCharacter.UnselectCard();
+        }
         IncrementTurnTracker(1);
 
-        if(currentEncounter.GetEncounterType() == "Enemy")
+        if(currentEncounter.GetEncounterType() == "Enemy" || currentEncounter.GetEncounterType() == "Unlockable")
         {
             currentEncounter.gameObject.SetActive(false);
         }
@@ -259,27 +295,45 @@ public class CardManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Method called when the Roll button is pressed.
+    /// </summary>
     public void HandleRoll()
     {
-        if(inEnemyEncounter == true && encounterCharacterSelected == true && hasRolled == false)
+        if(encounterCharacterSelected == true && hasRolled == false)
         {
             hasRolled = true;
             // Dice roll + character stat
             int totalRollValue = Random.Range(1, 6) + GetEncounterStatValue();
             bool isWin = currentEncounter.IsResultWin(totalRollValue);
-            string resultAction = (isWin == true ? currentEncounter.GetWinAction() : currentEncounter.GetLossAction());
-            string resultDescription = HandleEnemyEncounterAction(resultAction, isWin);
+            string resultDescription = "";
+            if (inEnemyEncounter == true)
+            {
+                string resultAction = (isWin == true ? currentEncounter.GetWinAction() : currentEncounter.GetLossAction());
+                resultDescription = HandleEnemyEncounterAction(resultAction, isWin);
+            }
+            else if(inUnlockableStealthEncounter == true)
+            {
+                resultDescription = HandleUnlockableEncounterAction(isWin, false);
+            }
+
             DisplayEncounterResult(totalRollValue, resultDescription);
             UpdateButtons();
             Invoke(nameof(EndEncounter), 2.0f);
         }
     }
 
+    /// <summary>
+    /// Method to retrieve whether an item is selected (used in the EncounterCard)
+    /// </summary>
     public bool ItemIsSelected()
     {
         return encounterItemSelected;
     }
 
+    /// <summary>
+    /// Method called when an EncounterCard with the Item type is clicked
+    /// </summary>
     public void UpdateSelectedItem(EncounterCard itemCard)
     {
         if(inItemEncounter == true && encounterItemSelected == false)
@@ -295,6 +349,9 @@ public class CardManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Method called when the Confirm button is pressed during an Item encounter
+    /// </summary>
     public void ConfirmItem()
     {
         string resultDescription = HandleItemEncounterAction(currentEncounter.GetWinAction());
@@ -317,6 +374,12 @@ public class CardManager : MonoBehaviour
         Invoke(nameof(EndEncounter), 2.0f);
     }
 
+    /// <summary>
+    /// Method called during an Enemy encounter.
+    /// </summary>
+    /// <param name="actionType">The win/lose action from the EncounterCard</param>
+    /// <param name="isWin">Was the roll + stat value in the win range</param>
+    /// <returns>A description of what was lost.</returns>
     private string HandleEnemyEncounterAction(string actionType, bool isWin)
     {
         int amount = currentEncounter.ResultAmount(isWin);
@@ -339,6 +402,11 @@ public class CardManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Method called during an Item encounter
+    /// </summary>
+    /// <param name="actionType">The action from the EncounterCard</param>
+    /// <returns>A description of what was gained/lost</returns>
     private string HandleItemEncounterAction(string actionType)
     {
         int increaseAmount = currentEncounter.ResultAmount(true);
@@ -369,23 +437,38 @@ public class CardManager : MonoBehaviour
         }
     }
 
-    private string HandleUnlockableEncounterAction(bool isWin)
+    /// <summary>
+    /// Method called during an Unlockable encounter
+    /// </summary>
+    /// <param name="isWin">A key was available or the roll + stat value in the win range</param>
+    /// <param name="withKey">A key used</param>
+    /// <returns>A description of what was done and how many turns were gained/lost</returns>
+    private string HandleUnlockableEncounterAction(bool isWin, bool withKey)
     {
-        // TODO: add stealth piece   
-        if (isWin)
+        if (isWin && withKey)
         {
             int amount = currentEncounter.ResultAmount(true);
             IncrementTurnTracker(amount);
-            return $"are now {amount} turn(s) closer.";
+            return $"You use a key and are now {amount} turn(s) closer.";
+        }
+        else if (isWin && !withKey)
+        {
+            int amount = currentEncounter.ResultAmount(true);
+            IncrementTurnTracker(amount);
+            currentCharacter.DecreaseStealth(1);
+            return $", pick the lock and are now {amount} turn(s) closer. You lose 1 stealth.";
         }
         else
         {
             int amount = currentEncounter.ResultAmount(false);
             IncrementTurnTracker(-amount);
-            return $"now it's going to take an extra {amount} turn(s).";
+            return $"and waste {amount} turn(s) trying to pick the lock.";
         }
     }
 
+    /// <summary>
+    /// Method to get the character's stat value for the current encounter type
+    /// </summary>
     private int GetEncounterStatValue()
     {
         switch (currentEncounter.GetEncounterType())
@@ -404,13 +487,8 @@ public class CardManager : MonoBehaviour
                 {
                     return currentCharacter.GetStealth();
                 }
-            case "Trap":
-                return 0;
-            case "Item":
-                // TODO: Implement item storage for keys
-                return 0;
             case "Unlockable":
-                return 0;
+                return currentCharacter.GetStealth();
         }
 
         return 0;
@@ -466,14 +544,22 @@ public class CardManager : MonoBehaviour
         character.transform.position = characterTeamPositions[character.placedIndex].position;
     }
 
+    /// <summary>
+    /// Used during an encounter after the character has been selected
+    /// </summary>
+    /// <param name="character">The selected character card</param>
     private void MoveToEncounterPosition(CharacterCard character)
     {
         character.transform.position = encounterCharacterPosition.position;
     }
 
+    /// <summary>
+    /// Used OnMousedown for a CharacterCard during an encounter
+    /// </summary>
+    /// <param name="characterCard">The card that was clicked</param>
     public void SetCurrentCharacter(CharacterCard characterCard)
     {
-        if (inEnemyEncounter && !encounterCharacterSelected)
+        if ((inEnemyEncounter || inUnlockableStealthEncounter) && !encounterCharacterSelected)
         {
             currentCharacter = characterCard;
             characterCard.SelectCard();

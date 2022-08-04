@@ -6,7 +6,6 @@ using UnityEngine;
 public class EncounterCard : Card
 {
     [SerializeField] private Type EncounterType;
-    [SerializeField, Range(1, 6)] private int enemyStrength;
     [SerializeField] private List<int> winCriteria;    
 
     [SerializeField] private Action WinResult;

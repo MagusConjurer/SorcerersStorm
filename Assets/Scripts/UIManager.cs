@@ -177,6 +177,7 @@ public class UIManager : MonoBehaviour
         resultText = GameObject.Find("ResultText").GetComponent<Text>();
         keyCountText = GameObject.Find("KeyCountText").GetComponent<Text>();
         currentKeyCount = 0;
+        UpdateKeyCountText(1);
 
         Button[] boardButtons = boardPanel.GetComponentsInChildren<Button>();
         foreach (Button button in boardButtons)
@@ -306,5 +307,13 @@ public class UIManager : MonoBehaviour
     {
         currentKeyCount += toAdd;
         keyCountText.text = $"{currentKeyCount}";
+    }
+
+    /// <summary>
+    /// Returns the current key count
+    /// </summary>
+    public int GetKeyCount()
+    {
+        return currentKeyCount;
     }
 }
