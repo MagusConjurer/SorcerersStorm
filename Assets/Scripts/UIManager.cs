@@ -17,18 +17,30 @@ public class UIManager : MonoBehaviour
 
     /// Game Scene
     private CardManager cardManager;
+    /// Team & Characters
     private GameObject rosterPanel;
-    private GameObject boardPanel;
     private GameObject teamPanel;
-    private GameObject bossPanel;
+    private Text keyCountText;
+    private int currentKeyCount;
+
+    /// Board
+    private GameObject boardPanel;
     private Slider turnTracker;
     private Button encounterButton;
     private Button rollButton;
     private Button confirmItemButton;
     private Text instructionText;
     private Text resultText;
-    private Text keyCountText;
-    private int currentKeyCount;
+
+    /// Boss
+    private GameObject bossPanel;
+    private Image[] bossHealthBar;
+    private int currentBossHealth;
+    private string bossName = "The Sorcerer";
+
+    /// Colors
+    private Color sorcererPurple;
+    private Color sorcererDarkGray;
 
     // Start is called before the first frame update
     void Start()
@@ -38,6 +50,9 @@ public class UIManager : MonoBehaviour
         cardManager = gameManager.GetComponent<CardManager>();
 
         reloadComplete = SetupMainMenuPanels();
+
+        sorcererPurple   = new Color(0.467f, 0.235f, 0.325f, 1.0f); // RGBA: 119,60,83,255
+        sorcererDarkGray = new Color(0.275f, 0.251f, 0.247f, 1.0f); // RGBA: 70,64,63,255
     }
 
     // Update is called once per frame
@@ -49,33 +64,52 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Makes only the SettingsMenu panel active.
+    /// </summary>
     public void DisplaySettings()
     {
         MainMenu.SetActive(false);
         SettingsMenu.SetActive(true);
     }
 
+    /// <summary>
+    /// Makes only the MainMenu panel active
+    /// </summary>
     public void DisplayMainMenu()
     {
         MainMenu.SetActive(true);
         SettingsMenu.SetActive(false);
     }
 
+    /// <summary>
+    /// Loads the GameScene scene
+    /// </summary>
     public void LoadGame()
     {
         SceneManager.LoadScene("GameScene");
     }
 
+    /// <summary>
+    /// Loads the MainMenu scene
+    /// </summary>
     public void LoadMainMenu()
     {
         SceneManager.LoadScene("MainMenu");
     }
 
+    /// <summary>
+    /// Closes the application
+    /// </summary>
     public void ExitGame()
     {
         Application.Quit();
     }
 
+    /// <summary>
+    /// Finds and initializes the main menu and settings panels.
+    /// </summary>
+    /// <returns></returns>
     private bool SetupMainMenuPanels()
     {
         if(MainMenu == null || SettingsMenu == null)
@@ -160,11 +194,18 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Check that all game panels have been loaded
+    /// </summary>
+    /// <returns>True if none of the panels are null</returns>
     public bool GamePanelsAreLoaded()
     {
         return (rosterPanel != null && boardPanel != null && teamPanel != null && bossPanel != null);
     }
 
+    /// <summary>
+    /// Finds and initializes all of the necessary game objects and variables. Assigns the associated listener to each button.
+    /// </summary>
     public void LoadGamePanels()
     {
         rosterPanel = GameObject.Find("RosterPanel");
@@ -177,7 +218,13 @@ public class UIManager : MonoBehaviour
         resultText = GameObject.Find("ResultText").GetComponent<Text>();
         keyCountText = GameObject.Find("KeyCountText").GetComponent<Text>();
         currentKeyCount = 0;
-        UpdateKeyCountText(1);
+
+        bossHealthBar = GameObject.Find("BossHealthBar").GetComponentsInChildren<Image>();
+        currentBossHealth = 5;
+        foreach(Image bar in bossHealthBar)
+        {
+            bar.color = sorcererPurple;
+        }
 
         Button[] boardButtons = boardPanel.GetComponentsInChildren<Button>();
         foreach (Button button in boardButtons)
@@ -205,6 +252,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Makes only the Roster panel active
+    /// </summary>
     public void DisplayRosterPanel()
     {
         try
@@ -220,6 +270,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Makes only the Board panel active
+    /// </summary>
     public void DisplayBoardPanel()
     {
         try
@@ -235,6 +288,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Makes only the Boss panel active and sets the boss text
+    /// </summary>
     public void DisplayBossPanel()
     {
         try
@@ -244,7 +300,7 @@ public class UIManager : MonoBehaviour
             bossPanel.SetActive(true);
 
             Text bossText = bossPanel.GetComponentInChildren<Text>();
-            bossText.text = "BOSS: The Sorcerer";
+            bossText.text = $"BOSS: {bossName}";
         }
         catch
         {
@@ -254,6 +310,12 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Changes which buttons are enabled based on the parameters.
+    /// </summary>
+    /// <param name="canDrawEncounter">Draw Encounter button should be enabled</param>
+    /// <param name="canRoll">Roll button should be enabled</param>
+    /// <param name="needsToConfirmItem">Confirm button should be visible and enabled</param>
     public void UpdateGameButtons(bool canDrawEncounter, bool canRoll, bool needsToConfirmItem)
     {
         encounterButton.enabled = canDrawEncounter;
@@ -315,5 +377,27 @@ public class UIManager : MonoBehaviour
     public int GetKeyCount()
     {
         return currentKeyCount;
+    }
+
+    /// <summary>
+    /// Method to update the boss health bar. Ends the game if boss health reaches 0.
+    /// </summary>
+    /// <param name="amount">Damage to apply</param>
+    public void DecreaseBossHealth(int amount)
+    {
+        currentBossHealth -= amount;
+        if(currentBossHealth <= 0)
+        {
+            //TODO: End game
+        }
+        else
+        {
+            int startIndex = currentBossHealth - 1;
+            int finalIndex = startIndex + (amount - 1);
+            for (int i = startIndex; i < finalIndex; i++)
+            {
+                bossHealthBar[i].color = sorcererDarkGray;
+            }
+        }
     }
 }
