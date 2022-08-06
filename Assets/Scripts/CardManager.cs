@@ -18,6 +18,7 @@ public class CardManager : MonoBehaviour
     private bool gameLoaded;
     private bool[] availableCharacterTeamPositions;
     public bool fullTeamSelected;
+    public bool playerAlive;
 
     // Encounters
     private bool outOfTurns;
@@ -102,6 +103,7 @@ public class CardManager : MonoBehaviour
 
         characterSelectedDeck = new List<CharacterCard>();
         fullTeamSelected = false;
+        playerAlive = true;
     }
 
     /// <summary>
@@ -190,12 +192,13 @@ public class CardManager : MonoBehaviour
 
             uiManager.EnableBossMainMenuButton(false);
         }
-        else if(!bossAlive && outOfTurns)
+        else if((!bossAlive || !playerAlive) && outOfTurns)
         {
             canDrawEncounter   = false;
             canRoll            = false;
             needsToConfirmItem = false;
  
+            EndGame(playerAlive);
             uiManager.EnableBossMainMenuButton(true);
         }
         else
@@ -317,18 +320,24 @@ public class CardManager : MonoBehaviour
         encounterCharacterSelected = false;
         inBossEncounter = false;
 
+        playerAlive = (characterSelectedDeck.Count > 0);
+
         if (currentCharacter != null)
         {
             MoveToTeamPosition(currentCharacter);
             currentCharacter.UnselectCard();
         }
 
-        if (bossAlive)
+        if (bossAlive && outOfTurns)
         {
-            bossAlive = uiManager.GetBossHealth() >= 0;
+            bossAlive = uiManager.GetBossHealth() > 0;
             currentEncounter.gameObject.SetActive(false);
 
             uiManager.UpdateInstructionText("Draw an Encounter");
+            UpdateButtons();
+        }
+        else if(!bossAlive && outOfTurns)
+        {
             UpdateButtons();
         }
         else
@@ -745,5 +754,17 @@ public class CardManager : MonoBehaviour
         }
 
         DisplayEncounterResult(totalRollValue, resultDescription);
+    }
+
+    private void EndGame(bool playerWon)
+    {
+        if(playerWon)
+        {
+            DisplayEncounterResult("You have defeated the boss!");
+        }
+        else
+        {
+            DisplayEncounterResult("You have been defeated!");
+        }
     }
 }
