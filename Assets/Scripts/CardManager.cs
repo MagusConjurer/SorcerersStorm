@@ -18,7 +18,7 @@ public class CardManager : MonoBehaviour
     private bool gameLoaded;
     private bool[] availableCharacterTeamPositions;
     public bool fullTeamSelected;
-    public bool playerAlive;
+    public int characterCount;
 
     // Encounters
     private bool outOfTurns;
@@ -105,7 +105,6 @@ public class CardManager : MonoBehaviour
 
         characterSelectedDeck = new List<CharacterCard>();
         fullTeamSelected = false;
-        playerAlive = true;
     }
 
     /// <summary>
@@ -212,7 +211,9 @@ public class CardManager : MonoBehaviour
         /// Can confirm if in an item encounter with the item and character selected
         bool needsToConfirmItem;
 
-        if (bossAlive && outOfTurns)
+        bool playerAlive = characterCount > 0;
+
+        if (bossAlive && playerAlive && outOfTurns)
         {
             canDrawEncounter   = !inBossEncounter;
             canRoll            = inBossEncounter && encounterCharacterSelected && !hasRolled;
@@ -349,8 +350,6 @@ public class CardManager : MonoBehaviour
         inUnlockableStealthEncounter = false;
         encounterCharacterSelected = false;
         inBossEncounter = false;
-
-        playerAlive = (characterSelectedDeck.Count > 0);
 
         if (currentCharacter != null)
         {
@@ -631,6 +630,7 @@ public class CardManager : MonoBehaviour
             characterCard.SelectCard();
             if (characterSelectedDeck.Count == 4)
             {
+                characterCount = 4;
                 fullTeamSelected = true;
                 Invoke(nameof(MoveAllToTeamPositions), .5f);
                 Invoke(nameof(DisplayBoard), .75f);
@@ -701,6 +701,14 @@ public class CardManager : MonoBehaviour
             uiManager.UpdateInstructionText("Confirm Selection");
             UpdateButtons();
         }
+    }
+    
+    /// <summary>
+    /// Used by the CharacterCard class to decrease the count when a character dies
+    /// </summary>
+    public void DecreasePlayerCount()
+    {
+        characterCount--;
     }
 
     /// <summary>

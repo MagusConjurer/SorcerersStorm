@@ -454,10 +454,6 @@ public class UIManager : MonoBehaviour
                 bossHealthBar[i].color = sorcererDarkGray;
             }
         }
-        else
-        {
-            //TODO: End game
-        }
     }
 
     /// <summary>

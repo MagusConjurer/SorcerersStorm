@@ -17,21 +17,11 @@ public class CharacterCard : Card
     {
         base.Start();
 
-
         SetHealth(baseHealth);
         SetStrength(baseStrength);
         SetAccuracy(baseAccuracy);
         SetStealth(baseStealth);
         isAlive = true;
-    }
-
-    private void Update()
-    {
-        if(currentHealth <= 0)
-        {
-            isAlive = false;
-            HideCard();
-        }
     }
 
     public int GetHealth()
@@ -57,6 +47,13 @@ public class CharacterCard : Card
     public void DecreaseHealth(int value)
     {
         SetHealth(currentHealth - value);
+
+        if (currentHealth <= 0)
+        {
+            isAlive = false;
+            HideCard();
+            cardManager.DecreasePlayerCount();
+        }
     }
 
     public void DecreaseStrength(int value)
