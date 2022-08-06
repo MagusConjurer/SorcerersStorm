@@ -5,17 +5,17 @@ using UnityEngine;
 
 public class EncounterCard : Card
 {
-    [SerializeField] private Type EncounterType;
+    [SerializeField] private Type encounterType;
     [SerializeField] private List<int> winCriteria;    
 
-    [SerializeField] private Action WinResult;
-    [SerializeField, Range(1, 2)] private int WinResultAmount;
-    [SerializeField] private Action LossResult;
-    [SerializeField, Range(1, 2)] private int LossResultAmount;
+    [SerializeField] private Action winResult;
+    [SerializeField, Range(1, 2)] private int winResultAmount;
+    [SerializeField] private Action lossResult;
+    [SerializeField, Range(1, 2)] private int lossResultAmount;
 
     public string GetEncounterType()
     {
-        return EncounterType.ToString();
+        return encounterType.ToString();
     }
 
     public bool IsResultWin(int rollValue)
@@ -25,28 +25,28 @@ public class EncounterCard : Card
 
     public string GetWinAction()
     {
-        return WinResult.ToString();
+        return winResult.ToString();
     }
     public string GetLossAction()
     {
-        return LossResult.ToString();
+        return lossResult.ToString();
     }
 
     public int ResultAmount(bool isWin)
     {
         if (isWin)
         {
-            return WinResultAmount;
+            return winResultAmount;
         }
         else
         {
-            return LossResultAmount;
+            return lossResultAmount;
         }
     }
 
     private void OnMouseDown()
     {
-        if(EncounterType.ToString() == "Item")
+        if(encounterType.ToString() == "Item")
         {
             if (selected == false && cardManager.ItemIsSelected() == false)
             {
@@ -61,7 +61,7 @@ public class EncounterCard : Card
         }
     }
 
-    private enum Action
+    protected enum Action
     {
         Turn,
         Key,
@@ -71,11 +71,12 @@ public class EncounterCard : Card
         Stealth
     }
 
-    private enum Type 
+    protected enum Type 
     {
         Item,
         Enemy, 
         Trap,
-        Unlockable
+        Unlockable,
+        Boss
     }
 }

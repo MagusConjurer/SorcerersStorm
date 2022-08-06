@@ -17,18 +17,34 @@ public class UIManager : MonoBehaviour
 
     /// Game Scene
     private CardManager cardManager;
+    /// Team & Characters
     private GameObject rosterPanel;
-    private GameObject boardPanel;
     private GameObject teamPanel;
-    private GameObject bossPanel;
+    private Text keyCountText;
+    private int currentKeyCount;
+
+    /// Board
+    private GameObject boardPanel;
     private Slider turnTracker;
     private Button encounterButton;
     private Button rollButton;
     private Button confirmItemButton;
     private Text instructionText;
-    private Text resultText;
-    private Text keyCountText;
-    private int currentKeyCount;
+
+    /// Boss
+    private GameObject bossPanel;
+    private Image[] bossHealthBar;
+    private Button bossEncounterButton;
+    private Button bossRollButton;
+    private Button mainMenuButton;
+    private Text bossInstructionText;
+    private bool atBoss;
+    private int currentBossHealth;
+    private string bossName = "The Sorcerer";
+
+    /// Colors
+    private Color sorcererPurple;
+    private Color sorcererDarkGray;
 
     // Start is called before the first frame update
     void Start()
@@ -38,6 +54,9 @@ public class UIManager : MonoBehaviour
         cardManager = gameManager.GetComponent<CardManager>();
 
         reloadComplete = SetupMainMenuPanels();
+
+        sorcererPurple   = new Color(0.467f, 0.235f, 0.325f, 1.0f); // RGBA: 119,60,83,255
+        sorcererDarkGray = new Color(0.275f, 0.251f, 0.247f, 1.0f); // RGBA: 70,64,63,255
     }
 
     // Update is called once per frame
@@ -49,33 +68,52 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Makes only the SettingsMenu panel active.
+    /// </summary>
     public void DisplaySettings()
     {
         MainMenu.SetActive(false);
         SettingsMenu.SetActive(true);
     }
 
+    /// <summary>
+    /// Makes only the MainMenu panel active
+    /// </summary>
     public void DisplayMainMenu()
     {
         MainMenu.SetActive(true);
         SettingsMenu.SetActive(false);
     }
 
+    /// <summary>
+    /// Loads the GameScene scene
+    /// </summary>
     public void LoadGame()
     {
         SceneManager.LoadScene("GameScene");
     }
 
+    /// <summary>
+    /// Loads the MainMenu scene
+    /// </summary>
     public void LoadMainMenu()
     {
         SceneManager.LoadScene("MainMenu");
     }
 
+    /// <summary>
+    /// Closes the application
+    /// </summary>
     public void ExitGame()
     {
         Application.Quit();
     }
 
+    /// <summary>
+    /// Finds and initializes the main menu and settings panels.
+    /// </summary>
+    /// <returns></returns>
     private bool SetupMainMenuPanels()
     {
         if(MainMenu == null || SettingsMenu == null)
@@ -151,7 +189,7 @@ public class UIManager : MonoBehaviour
     {
         if(scene.name == "GameScene")
         {
-            Button mainMenuButton = GameObject.Find("LoadMainMenuButton").GetComponent<Button>();
+            mainMenuButton = GameObject.Find("LoadMainMenuButton").GetComponent<Button>();
             mainMenuButton.onClick.AddListener(LoadMainMenu);
         }
         if(scene.name == "MainMenu")
@@ -160,11 +198,18 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Check that all game panels have been loaded
+    /// </summary>
+    /// <returns>True if none of the panels are null</returns>
     public bool GamePanelsAreLoaded()
     {
         return (rosterPanel != null && boardPanel != null && teamPanel != null && bossPanel != null);
     }
 
+    /// <summary>
+    /// Finds and initializes all of the necessary game objects and variables. Assigns the associated listener to each button.
+    /// </summary>
     public void LoadGamePanels()
     {
         rosterPanel = GameObject.Find("RosterPanel");
@@ -173,11 +218,20 @@ public class UIManager : MonoBehaviour
         bossPanel = GameObject.Find("BossPanel");
 
         turnTracker = boardPanel.GetComponentInChildren<Slider>();
+
         instructionText = GameObject.Find("InstructionText").GetComponent<Text>();
-        resultText = GameObject.Find("ResultText").GetComponent<Text>();
+        instructionText.text = "Draw an Encounter";
         keyCountText = GameObject.Find("KeyCountText").GetComponent<Text>();
         currentKeyCount = 0;
-        UpdateKeyCountText(1);
+
+        SetAtBoss(false);
+        bossInstructionText = GameObject.Find("BossInstructionText").GetComponent<Text>();
+        bossHealthBar = GameObject.Find("BossHealthBar").GetComponentsInChildren<Image>();
+        currentBossHealth = 5;
+        foreach(Image bar in bossHealthBar)
+        {
+            bar.color = sorcererPurple;
+        }
 
         Button[] boardButtons = boardPanel.GetComponentsInChildren<Button>();
         foreach (Button button in boardButtons)
@@ -203,8 +257,35 @@ public class UIManager : MonoBehaviour
                 confirmItemButton.gameObject.SetActive(false);
             }
         }
+
+        Button[] bossButtons = bossPanel.GetComponentsInChildren<Button>();
+        foreach(Button button in bossButtons)
+        {
+            button.onClick.RemoveAllListeners();
+            if(button.name == "BossEncounterButton")
+            {
+                bossEncounterButton = button;
+                button.onClick.AddListener(cardManager.DrawBossEncounter);
+                button.enabled = false;
+            }
+            else if(button.name == "BossDiceRollButton")
+            {
+                bossRollButton = button;
+                button.onClick.AddListener(cardManager.HandleRoll);
+                button.enabled = false;
+            }
+            else if(button.name == "LoadMainMenuButton")
+            {
+                mainMenuButton = button;
+                button.onClick.AddListener(LoadMainMenu);
+                button.enabled = false;
+            }
+        }
     }
 
+    /// <summary>
+    /// Makes only the Roster panel active
+    /// </summary>
     public void DisplayRosterPanel()
     {
         try
@@ -212,6 +293,8 @@ public class UIManager : MonoBehaviour
             rosterPanel.SetActive(true);
             boardPanel.SetActive(false);
             bossPanel.SetActive(false);
+
+            SetAtBoss(false);
         }
         catch
         {
@@ -220,6 +303,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Makes only the Board panel active
+    /// </summary>
     public void DisplayBoardPanel()
     {
         try
@@ -227,6 +313,8 @@ public class UIManager : MonoBehaviour
             rosterPanel.SetActive(false);
             boardPanel.SetActive(true);
             bossPanel.SetActive(false);
+
+            SetAtBoss(false);
         }
         catch
         {
@@ -235,6 +323,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Makes only the Boss panel active and sets the boss title text
+    /// </summary>
     public void DisplayBossPanel()
     {
         try
@@ -243,23 +334,48 @@ public class UIManager : MonoBehaviour
             boardPanel.SetActive(false);
             bossPanel.SetActive(true);
 
-            Text bossText = bossPanel.GetComponentInChildren<Text>();
-            bossText.text = "BOSS: The Sorcerer";
+            Text bossText = GameObject.Find("BossTitleText").GetComponent<Text>();
+            bossText.text = $"BOSS: {bossName}";
+
+            SetAtBoss(true);
         }
         catch
         {
-
             LoadGamePanels();
             DisplayBossPanel();
         }
     }
 
+    /// <summary>
+    /// Changes which buttons are enabled based on the parameters.
+    /// </summary>
+    /// <param name="canDrawEncounter">Draw Encounter button should be enabled</param>
+    /// <param name="canRoll">Roll button should be enabled</param>
+    /// <param name="needsToConfirmItem">Confirm button should be visible and enabled</param>
     public void UpdateGameButtons(bool canDrawEncounter, bool canRoll, bool needsToConfirmItem)
     {
-        encounterButton.enabled = canDrawEncounter;
-        rollButton.enabled = canRoll;
-        confirmItemButton.enabled = needsToConfirmItem;
-        confirmItemButton.gameObject.SetActive(needsToConfirmItem);
+        if(atBoss)
+        {
+            bossEncounterButton.enabled = canDrawEncounter;
+            bossRollButton.enabled = canRoll;
+            confirmItemButton.enabled = needsToConfirmItem;
+        }
+        else
+        {
+            encounterButton.enabled = canDrawEncounter;
+            rollButton.enabled = canRoll;
+            confirmItemButton.enabled = needsToConfirmItem;
+            confirmItemButton.gameObject.SetActive(needsToConfirmItem);
+        }
+    }
+
+    /// <summary>
+    /// Update whether the main menu button on the main menu is enabled and visible.
+    /// </summary>
+    public void EnableBossMainMenuButton(bool isEnabled)
+    {
+        mainMenuButton.enabled = isEnabled;
+        mainMenuButton.gameObject.SetActive(isEnabled);
     }
 
     /// <summary>
@@ -282,21 +398,18 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Used to update the result text displayed during encounters
-    /// </summary>
-    /// <param name="newText"></param>
-    public void UpdateResultText(string newText)
-    {
-        resultText.text = newText;
-    }
-
-    /// <summary>
     /// Used to update the instruction text during encounters
     /// </summary>
-    /// <param name="newText">The instructions</param>
     public void UpdateInstructionText(string newText)
     {
-        instructionText.text = newText;
+        if(atBoss)
+        {
+            bossInstructionText.text = newText;
+        }
+        else
+        {
+            instructionText.text = newText;
+        }
     }
 
     /// <summary>
@@ -315,5 +428,39 @@ public class UIManager : MonoBehaviour
     public int GetKeyCount()
     {
         return currentKeyCount;
+    }
+
+    /// <summary>
+    /// Get the current boss health value
+    /// </summary>
+    public int GetBossHealth()
+    {
+        return currentBossHealth;
+    }
+
+    /// <summary>
+    /// Method to update the boss health bar. Ends the game if boss health reaches 0.
+    /// </summary>
+    /// <param name="amount">Damage to apply</param>
+    public void DecreaseBossHealth(int amount)
+    {
+        currentBossHealth -= amount;
+        if(currentBossHealth >= 0)
+        {
+            int startIndex = currentBossHealth >= 0 ? currentBossHealth : 0;
+            int finalIndex = startIndex + (amount);
+            for (int i = startIndex; i < finalIndex; i++)
+            {
+                bossHealthBar[i].color = sorcererDarkGray;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Update whether the player is at the boss stage
+    /// </summary>
+    private void SetAtBoss(bool status)
+    {
+        atBoss = status;
     }
 }

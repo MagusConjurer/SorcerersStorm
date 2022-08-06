@@ -18,6 +18,7 @@ public class CardManager : MonoBehaviour
     private bool gameLoaded;
     private bool[] availableCharacterTeamPositions;
     public bool fullTeamSelected;
+    public int characterCount;
 
     // Encounters
     private bool outOfTurns;
@@ -27,6 +28,7 @@ public class CardManager : MonoBehaviour
     private bool encounterItemSelected;
     private bool hasRolled;
     private List<EncounterCard> encounterDeck;
+    private List<EncounterCard> encounterDiscardDeck;
     private List<EncounterCard> itemDeck;
     private EncounterCard currentEncounter;
     private Transform encounterCardPosition;
@@ -35,6 +37,13 @@ public class CardManager : MonoBehaviour
     private EncounterCard secondItem;
     private Transform firstItemCardPosition;
     private Transform secondItemCardPosition;
+
+    // Boss
+    private bool inBossEncounter;
+    private bool bossAlive;
+    private List<BossEncounter> bossEncounterDeck;
+    private List<BossEncounter> bossEncounterDiscardDeck;
+
 
     // Start is called before the first frame update
     void Start()
@@ -60,6 +69,7 @@ public class CardManager : MonoBehaviour
         encounterCharacterSelected = false;
         LoadCharacterCards();
         LoadEncounters();
+        LoadBossEncounters();
         LoadGamePanels();
     }
 
@@ -111,20 +121,62 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void LoadEncounters()
     {
+        bossAlive = false;
+
         encounterDeck = new List<EncounterCard>();
+        encounterDiscardDeck = new List<EncounterCard>();
         encounterDeck.AddRange(GameObject.Find("Encounters").GetComponentsInChildren<EncounterCard>());
         encounterCardPosition = GameObject.Find("EncounterCardPosition").GetComponent<Transform>();
 
         itemDeck = new List<EncounterCard>();
         firstItemCardPosition = GameObject.Find("FirstItemCardPosition").GetComponent<Transform>();
         secondItemCardPosition = GameObject.Find("SecondItemCardPosition").GetComponent<Transform>();
-        
+
         foreach (EncounterCard card in encounterDeck)
         {
             card.gameObject.SetActive(false);
-            if(card.GetEncounterType() == "Item")
+            if (card.GetEncounterType() == "Item")
             {
                 itemDeck.Add(card);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Set up the list of boss encounter cards
+    /// </summary>
+    private void LoadBossEncounters()
+    {
+        bossEncounterDeck = new List<BossEncounter>();
+        bossEncounterDiscardDeck = new List<BossEncounter>();
+        bossEncounterDeck.AddRange(GameObject.Find("BossEncounters").GetComponentsInChildren<BossEncounter>());
+
+        foreach (BossEncounter card in bossEncounterDeck)
+        {
+            card.gameObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Take all of the cards in the discard list and add them back into the main deck.
+    /// </summary>
+    /// <param name="atBoss">Whether to reshuffle the regular or boss encounters</param>
+    private void ReshuffleEncounterCards(bool atBoss)
+    {
+        if(atBoss)
+        {
+            for(int i = bossEncounterDiscardDeck.Count - 1; i > 0; i--)
+            {
+                bossEncounterDeck.Add(bossEncounterDiscardDeck[i]);
+                bossEncounterDiscardDeck.RemoveAt(i);
+            }
+        }
+        else
+        {
+            for (int i = encounterDiscardDeck.Count - 1; i >= 0; i--)
+            {
+                encounterDeck.Add(encounterDiscardDeck[i]);
+                encounterDiscardDeck.RemoveAt(i);
             }
         }
     }
@@ -142,7 +194,9 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void DisplayBoss()
     {
+        bossAlive = true;
         uiManager.DisplayBossPanel();
+        UpdateButtons();
     }
 
     /// <summary>
@@ -151,16 +205,43 @@ public class CardManager : MonoBehaviour
     private void UpdateButtons()
     {
         /// Can draw if not in an encounter or out of turns
-        bool canDrawEncounter = (!inEnemyEncounter && !inItemEncounter && !inUnlockableStealthEncounter && !outOfTurns);
+        bool canDrawEncounter;
         /// Can roll if in an enemy/unlockable encounter
-        bool canRoll = ((inEnemyEncounter || inUnlockableStealthEncounter) && encounterCharacterSelected && !hasRolled);
+        bool canRoll;
         /// Can confirm if in an item encounter with the item and character selected
-        bool needsToConfirmItem = (inItemEncounter && encounterItemSelected && encounterCharacterSelected);
+        bool needsToConfirmItem;
+
+        bool playerAlive = characterCount > 0;
+
+        if (bossAlive && playerAlive && outOfTurns)
+        {
+            canDrawEncounter   = !inBossEncounter;
+            canRoll            = inBossEncounter && encounterCharacterSelected && !hasRolled;
+            needsToConfirmItem = false;
+
+            uiManager.EnableBossMainMenuButton(false);
+        }
+        else if((!bossAlive || !playerAlive) && outOfTurns)
+        {
+            canDrawEncounter   = false;
+            canRoll            = false;
+            needsToConfirmItem = false;
+ 
+            EndGame(playerAlive);
+            uiManager.EnableBossMainMenuButton(true);
+        }
+        else
+        {
+            canDrawEncounter   = (!inEnemyEncounter && !inItemEncounter && !inUnlockableStealthEncounter && !outOfTurns);
+            canRoll            = ((inEnemyEncounter || inUnlockableStealthEncounter) && encounterCharacterSelected && !hasRolled);
+            needsToConfirmItem = (inItemEncounter && encounterItemSelected && encounterCharacterSelected);
+        }
+
         uiManager.UpdateGameButtons(canDrawEncounter, canRoll, needsToConfirmItem);
     }
 
     /// <summary>
-    /// Update the outOfTurns bool based on the incremented tracker
+    /// Update the outOfTurns boolean based on the incremented tracker
     /// </summary>
     /// <param name="amount"></param>
     private void IncrementTurnTracker(int amount)
@@ -175,7 +256,7 @@ public class CardManager : MonoBehaviour
     /// <param name="description">Result of the action</param>
     private void DisplayEncounterResult(int rollValue, string description)
     {
-        uiManager.UpdateResultText($"You rolled a {rollValue} and {description}");
+        uiManager.UpdateInstructionText($"You rolled a {rollValue} and {description}");
     }
     /// <summary>
     /// Used for item encounters
@@ -183,7 +264,7 @@ public class CardManager : MonoBehaviour
     /// <param name="description">Result of the action</param>
     private void DisplayEncounterResult(string description)
     {
-        uiManager.UpdateResultText(description);
+        uiManager.UpdateInstructionText(description);
     }
 
     /// <summary>
@@ -196,13 +277,14 @@ public class CardManager : MonoBehaviour
         {
             if (encounterDeck.Count == 0)
             {
-                LoadEncounters();
+                ReshuffleEncounterCards(false);
             }
             else
             {
                 int randIndex = Random.Range(0, encounterDeck.Count);
                 currentEncounter = encounterDeck[randIndex];
                 encounterDeck.RemoveAt(randIndex);
+                encounterDiscardDeck.Add(currentEncounter);
             }
 
             if(currentEncounter.GetEncounterType() == "Enemy")
@@ -229,6 +311,7 @@ public class CardManager : MonoBehaviour
                 secondItem.gameObject.SetActive(true);
                 itemDeck.RemoveAt(randItemIndex);
                 encounterDeck.Remove(secondItem);
+                encounterDiscardDeck.Add(secondItem);
 
                 inItemEncounter = true;
                 encounterItemSelected = false;
@@ -242,7 +325,7 @@ public class CardManager : MonoBehaviour
                 if (uiManager.GetKeyCount() > 0)
                 {
                     uiManager.UpdateKeyCountText(-1);
-                    uiManager.UpdateResultText(HandleUnlockableEncounterAction(true, true));
+                    uiManager.UpdateInstructionText(HandleUnlockableEncounterAction(true, true));
                     Invoke(nameof(EndEncounter), 2.0f);
                 }
                 else
@@ -266,33 +349,51 @@ public class CardManager : MonoBehaviour
         inItemEncounter = false;
         inUnlockableStealthEncounter = false;
         encounterCharacterSelected = false;
-        if(currentCharacter != null)
+        inBossEncounter = false;
+
+        if (currentCharacter != null)
         {
             MoveToTeamPosition(currentCharacter);
             currentCharacter.UnselectCard();
         }
-        IncrementTurnTracker(1);
 
-        if(currentEncounter.GetEncounterType() == "Enemy" || currentEncounter.GetEncounterType() == "Unlockable")
+        if (bossAlive && outOfTurns)
         {
+            bossAlive = uiManager.GetBossHealth() > 0;
             currentEncounter.gameObject.SetActive(false);
-        }
-        else if (currentEncounter.GetEncounterType()=="Item")
-        {
-            firstItem.gameObject.SetActive(false);
-            secondItem.gameObject.SetActive(false);
-        }
-        
-        if (outOfTurns == false)
-        {
+
             uiManager.UpdateInstructionText("Draw an Encounter");
-            uiManager.UpdateResultText("");
+            UpdateButtons();
+        }
+        else if(!bossAlive && outOfTurns)
+        {
             UpdateButtons();
         }
         else
         {
-            Invoke(nameof(DisplayBoss), .5f);
+            IncrementTurnTracker(1);
+
+            if (currentEncounter.GetEncounterType() == "Enemy" || currentEncounter.GetEncounterType() == "Unlockable")
+            {
+                currentEncounter.gameObject.SetActive(false);
+            }
+            else if (currentEncounter.GetEncounterType() == "Item")
+            {
+                firstItem.gameObject.SetActive(false);
+                secondItem.gameObject.SetActive(false);
+            }
+
+            if (outOfTurns == false)
+            {
+                uiManager.UpdateInstructionText("Draw an Encounter");
+                UpdateButtons();
+            }
+            else
+            {
+                Invoke(nameof(DisplayBoss), .5f);
+            }
         }
+
     }
 
     /// <summary>
@@ -303,21 +404,30 @@ public class CardManager : MonoBehaviour
         if(encounterCharacterSelected == true && hasRolled == false)
         {
             hasRolled = true;
-            // Dice roll + character stat
-            int totalRollValue = Random.Range(1, 6) + GetEncounterStatValue();
-            bool isWin = currentEncounter.IsResultWin(totalRollValue);
-            string resultDescription = "";
-            if (inEnemyEncounter == true)
-            {
-                string resultAction = (isWin == true ? currentEncounter.GetWinAction() : currentEncounter.GetLossAction());
-                resultDescription = HandleEnemyEncounterAction(resultAction, isWin);
-            }
-            else if(inUnlockableStealthEncounter == true)
-            {
-                resultDescription = HandleUnlockableEncounterAction(isWin, false);
-            }
 
-            DisplayEncounterResult(totalRollValue, resultDescription);
+            if (inBossEncounter)
+            {
+                HandleBossEncounterAction(); 
+            }
+            else
+            {
+                // Dice roll + character stat
+                int totalRollValue = Random.Range(1, 6) + GetEncounterStatValue();
+                bool isWin = currentEncounter.IsResultWin(totalRollValue);
+                string resultDescription = "";
+                if (inEnemyEncounter)
+                {
+                    string resultAction = (isWin == true ? currentEncounter.GetWinAction() : currentEncounter.GetLossAction());
+                    resultDescription = HandleEnemyEncounterAction(resultAction, isWin);
+                }
+                else if(inUnlockableStealthEncounter)
+                {
+                    resultDescription = HandleUnlockableEncounterAction(isWin, false);
+                }
+
+                DisplayEncounterResult(totalRollValue, resultDescription);
+            }
+            
             UpdateButtons();
             Invoke(nameof(EndEncounter), 2.0f);
         }
@@ -471,10 +581,10 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private int GetEncounterStatValue()
     {
+        string statType = currentEncounter.GetWinAction();
         switch (currentEncounter.GetEncounterType())
         {
             case "Enemy":
-                string statType = currentEncounter.GetWinAction();
                 if (statType == "Strength")
                 {
                     return currentCharacter.GetStrength();
@@ -489,6 +599,19 @@ public class CardManager : MonoBehaviour
                 }
             case "Unlockable":
                 return currentCharacter.GetStealth();
+            case "Boss":
+                if (statType == "Strength")
+                {
+                    return currentCharacter.GetStrength() + currentCharacter.GetAccuracy();
+                }
+                else if (statType == "Accuracy")
+                {
+                    return currentCharacter.GetAccuracy() + currentCharacter.GetStealth();
+                }
+                else
+                {
+                    return currentCharacter.GetStealth() + currentCharacter.GetStrength();
+                }
         }
 
         return 0;
@@ -507,6 +630,7 @@ public class CardManager : MonoBehaviour
             characterCard.SelectCard();
             if (characterSelectedDeck.Count == 4)
             {
+                characterCount = 4;
                 fullTeamSelected = true;
                 Invoke(nameof(MoveAllToTeamPositions), .5f);
                 Invoke(nameof(DisplayBoard), .75f);
@@ -559,7 +683,7 @@ public class CardManager : MonoBehaviour
     /// <param name="characterCard">The card that was clicked</param>
     public void SetCurrentCharacter(CharacterCard characterCard)
     {
-        if ((inEnemyEncounter || inUnlockableStealthEncounter) && !encounterCharacterSelected)
+        if ((inEnemyEncounter || inUnlockableStealthEncounter || inBossEncounter) && !encounterCharacterSelected)
         {
             currentCharacter = characterCard;
             characterCard.SelectCard();
@@ -576,6 +700,110 @@ public class CardManager : MonoBehaviour
             MoveToEncounterPosition(currentCharacter);
             uiManager.UpdateInstructionText("Confirm Selection");
             UpdateButtons();
+        }
+    }
+    
+    /// <summary>
+    /// Used by the CharacterCard class to decrease the count when a character dies
+    /// </summary>
+    public void DecreasePlayerCount()
+    {
+        characterCount--;
+    }
+
+    /// <summary>
+    /// If the boss still has health, pull a random card out of the boss encounter deck and display it.
+    /// </summary>
+    public void DrawBossEncounter()
+    {
+        if (outOfTurns && bossAlive)
+        {
+            if (bossEncounterDeck.Count == 0)
+            {
+                ReshuffleEncounterCards(true);
+            }
+
+            int randIndex = Random.Range(0, bossEncounterDeck.Count);
+            currentEncounter = bossEncounterDeck[randIndex];
+            bossEncounterDeck.RemoveAt(randIndex);
+            bossEncounterDiscardDeck.Add((BossEncounter)currentEncounter);
+
+            currentEncounter.gameObject.SetActive(true);
+            currentEncounter.transform.position = encounterCardPosition.position;
+
+            inBossEncounter = true;
+            hasRolled = false;
+            uiManager.UpdateInstructionText("Choose a Character");
+        }
+
+        UpdateButtons();
+    }
+
+    private void HandleBossEncounterAction()
+    {
+        BossEncounter bossEncounter = (BossEncounter)currentEncounter;
+        // Dice roll + character stat
+        int totalRollValue = Random.Range(1, 6) + GetEncounterStatValue();
+        bool isWin = bossEncounter.IsResultWin(totalRollValue);
+        bool isBigWin = bossEncounter.IsResultBigWin(totalRollValue);
+        string resultDescription = "";
+        
+        int amount = bossEncounter.GetResultAmount(isWin, isBigWin);
+        string actionType;
+        if (isWin)
+        {
+            actionType = bossEncounter.GetWinAction();
+            uiManager.DecreaseBossHealth(1);
+            resultDescription += "did 1 damage to the boss,";
+        }
+        else if (isBigWin)
+        {
+            actionType = bossEncounter.GetBigWinAction();
+            uiManager.DecreaseBossHealth(2);
+            resultDescription += "did 2 damage to the boss,";
+        }
+        else
+        {
+            actionType = bossEncounter.GetLossAction();
+        }
+        
+        switch (actionType)
+        {
+            case "Health":
+                currentCharacter.DecreaseHealth(amount);
+                resultDescription += $"lost {amount} health.";
+                break;
+            case "Strength":
+                currentCharacter.DecreaseStrength(amount);
+                currentCharacter.DecreaseAccuracy(amount);
+                resultDescription += $" but lost {amount} strength & accuracy.";
+                break;
+            case "Accuracy":
+                currentCharacter.DecreaseAccuracy(amount);
+                currentCharacter.DecreaseStealth(amount);
+                resultDescription += $" but lost {amount} accuracy & stealth.";
+                break;
+            case "Stealth":
+                currentCharacter.DecreaseStealth(amount);
+                currentCharacter.DecreaseStrength(amount);
+                resultDescription += $" but lost {amount} stealth & strength.";
+                break;
+            default:
+                break;
+        }
+
+        DisplayEncounterResult(totalRollValue, resultDescription);
+    }
+
+    private void EndGame(bool playerWon)
+    {
+        if(playerWon)
+        {
+            DisplayEncounterResult("You have defeated the boss!");
+        }
+        else
+        {
+            DisplayEncounterResult("You have been defeated!");
         }
     }
 }

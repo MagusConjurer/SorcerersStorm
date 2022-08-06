@@ -32,6 +32,15 @@ TextureImporter:
   - first:
       213: -4658209961514503250
     second: SorcerersStormCards_9
+  - first:
+      213: 2556439593377142906
+    second: SorcerersStormCards_10
+  - first:
+      213: 5714571948472759015
+    second: SorcerersStormCards_11
+  - first:
+      213: -44002139805775328
+    second: SorcerersStormCards_12
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -137,7 +146,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 384
+        y: 768
         width: 256
         height: 384
       alignment: 0
@@ -158,7 +167,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 256
-        y: 384
+        y: 768
         width: 256
         height: 384
       alignment: 0
@@ -179,7 +188,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 512
-        y: 384
+        y: 768
         width: 256
         height: 384
       alignment: 0
@@ -200,7 +209,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 768
-        y: 384
+        y: 768
         width: 256
         height: 384
       alignment: 0
@@ -221,7 +230,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 1024
-        y: 384
+        y: 768
         width: 256
         height: 384
       alignment: 0
@@ -242,7 +251,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
+        y: 384
         width: 256
         height: 384
       alignment: 0
@@ -263,7 +272,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 256
-        y: 0
+        y: 384
         width: 256
         height: 384
       alignment: 0
@@ -284,7 +293,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 512
-        y: 0
+        y: 384
         width: 256
         height: 384
       alignment: 0
@@ -305,7 +314,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 768
-        y: 0
+        y: 384
         width: 256
         height: 384
       alignment: 0
@@ -326,7 +335,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 1024
-        y: 0
+        y: 384
         width: 256
         height: 384
       alignment: 0
@@ -338,6 +347,69 @@ TextureImporter:
       bones: []
       spriteID: ea3fdb268b6ba5fb0800000000000000
       internalID: -4658209961514503250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SorcerersStormCards_10
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 256
+        height: 384
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a781dfcf34c4a7320800000000000000
+      internalID: 2556439593377142906
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SorcerersStormCards_11
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 0
+        width: 256
+        height: 384
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7e27128f8ec3e4f40800000000000000
+      internalID: 5714571948472759015
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SorcerersStormCards_12
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 0
+        width: 256
+        height: 384
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 02a0587794ca36ff0800000000000000
+      internalID: -44002139805775328
       vertices: []
       indices: 
       edges: []
