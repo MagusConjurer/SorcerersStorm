@@ -8,7 +8,7 @@ public class BossEncounter : EncounterCard
     [SerializeField] private Action bigWinResult;
     [SerializeField, Range(1, 2)] private int bigWinResultAmount;
 
-    public bool IsBigWin(int rollValue)
+    public bool IsResultBigWin(int rollValue)
     {
         return bigWinCriteria.Contains(rollValue);
     }
@@ -16,5 +16,21 @@ public class BossEncounter : EncounterCard
     public string GetBigWinAction()
     {
         return bigWinResult.ToString();
+    }
+
+    public int GetResultAmount(bool isWin, bool isBigWin)
+    {
+        if(isWin)
+        {
+            return ResultAmount(true);
+        }
+        else if (isBigWin)
+        {
+            return bigWinResultAmount;
+        }
+        else
+        {
+            return ResultAmount(false);
+        }
     }
 }

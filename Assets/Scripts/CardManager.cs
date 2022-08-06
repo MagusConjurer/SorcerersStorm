@@ -209,7 +209,7 @@ public class CardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Update the outOfTurns bool based on the incremented tracker
+    /// Update the outOfTurns boolean based on the incremented tracker
     /// </summary>
     /// <param name="amount"></param>
     private void IncrementTurnTracker(int amount)
@@ -328,6 +328,7 @@ public class CardManager : MonoBehaviour
             bossAlive = uiManager.GetBossHealth() >= 0;
             currentEncounter.gameObject.SetActive(false);
 
+            uiManager.UpdateInstructionText("Draw an Encounter");
             UpdateButtons();
         }
         else
@@ -365,21 +366,30 @@ public class CardManager : MonoBehaviour
         if(encounterCharacterSelected == true && hasRolled == false)
         {
             hasRolled = true;
-            // Dice roll + character stat
-            int totalRollValue = Random.Range(1, 6) + GetEncounterStatValue();
-            bool isWin = currentEncounter.IsResultWin(totalRollValue);
-            string resultDescription = "";
-            if (inEnemyEncounter == true)
-            {
-                string resultAction = (isWin == true ? currentEncounter.GetWinAction() : currentEncounter.GetLossAction());
-                resultDescription = HandleEnemyEncounterAction(resultAction, isWin);
-            }
-            else if(inUnlockableStealthEncounter == true)
-            {
-                resultDescription = HandleUnlockableEncounterAction(isWin, false);
-            }
 
-            DisplayEncounterResult(totalRollValue, resultDescription);
+            if (inBossEncounter)
+            {
+                HandleBossEncounterAction(); 
+            }
+            else
+            {
+                // Dice roll + character stat
+                int totalRollValue = Random.Range(1, 6) + GetEncounterStatValue();
+                bool isWin = currentEncounter.IsResultWin(totalRollValue);
+                string resultDescription = "";
+                if (inEnemyEncounter)
+                {
+                    string resultAction = (isWin == true ? currentEncounter.GetWinAction() : currentEncounter.GetLossAction());
+                    resultDescription = HandleEnemyEncounterAction(resultAction, isWin);
+                }
+                else if(inUnlockableStealthEncounter)
+                {
+                    resultDescription = HandleUnlockableEncounterAction(isWin, false);
+                }
+
+                DisplayEncounterResult(totalRollValue, resultDescription);
+            }
+            
             UpdateButtons();
             Invoke(nameof(EndEncounter), 2.0f);
         }
@@ -533,10 +543,10 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private int GetEncounterStatValue()
     {
+        string statType = currentEncounter.GetWinAction();
         switch (currentEncounter.GetEncounterType())
         {
             case "Enemy":
-                string statType = currentEncounter.GetWinAction();
                 if (statType == "Strength")
                 {
                     return currentCharacter.GetStrength();
@@ -551,6 +561,19 @@ public class CardManager : MonoBehaviour
                 }
             case "Unlockable":
                 return currentCharacter.GetStealth();
+            case "Boss":
+                if (statType == "Strength")
+                {
+                    return currentCharacter.GetStrength() + currentCharacter.GetAccuracy();
+                }
+                else if (statType == "Accuracy")
+                {
+                    return currentCharacter.GetAccuracy() + currentCharacter.GetStealth();
+                }
+                else
+                {
+                    return currentCharacter.GetStealth() + currentCharacter.GetStrength();
+                }
         }
 
         return 0;
@@ -666,5 +689,61 @@ public class CardManager : MonoBehaviour
         }
 
         UpdateButtons();
+    }
+
+    private void HandleBossEncounterAction()
+    {
+        BossEncounter bossEncounter = (BossEncounter)currentEncounter;
+        // Dice roll + character stat
+        int totalRollValue = Random.Range(1, 6) + GetEncounterStatValue();
+        bool isWin = bossEncounter.IsResultWin(totalRollValue);
+        bool isBigWin = bossEncounter.IsResultBigWin(totalRollValue);
+        string resultDescription = "";
+        
+        int amount = bossEncounter.GetResultAmount(isWin, isBigWin);
+        string actionType;
+        if (isWin)
+        {
+            actionType = bossEncounter.GetWinAction();
+            uiManager.DecreaseBossHealth(1);
+            resultDescription += "did 1 damage to the boss,";
+        }
+        else if (isBigWin)
+        {
+            actionType = bossEncounter.GetBigWinAction();
+            uiManager.DecreaseBossHealth(2);
+            resultDescription += "did 2 damage to the boss,";
+        }
+        else
+        {
+            actionType = bossEncounter.GetLossAction();
+        }
+        
+        switch (actionType)
+        {
+            case "Health":
+                currentCharacter.DecreaseHealth(amount);
+                resultDescription += $"lost {amount} health.";
+                break;
+            case "Strength":
+                currentCharacter.DecreaseStrength(amount);
+                currentCharacter.DecreaseAccuracy(amount);
+                resultDescription += $" but lost {amount} strength & accuracy.";
+                break;
+            case "Accuracy":
+                currentCharacter.DecreaseAccuracy(amount);
+                currentCharacter.DecreaseStealth(amount);
+                resultDescription += $" but lost {amount} accuracy & stealth.";
+                break;
+            case "Stealth":
+                currentCharacter.DecreaseStealth(amount);
+                currentCharacter.DecreaseStrength(amount);
+                resultDescription += $" but lost {amount} stealth & strength.";
+                break;
+            default:
+                break;
+        }
+
+        DisplayEncounterResult(totalRollValue, resultDescription);
     }
 }

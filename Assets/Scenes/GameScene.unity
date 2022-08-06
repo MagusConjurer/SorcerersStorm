@@ -2656,7 +2656,7 @@ MonoBehaviour:
   winResult: 4
   winResultAmount: 1
   lossResult: 2
-  lossResultAmount: 1
+  lossResultAmount: 2
   bigWinCriteria: 0d0000000e0000000f000000100000001100000012000000
   bigWinResult: 5
   bigWinResultAmount: 1

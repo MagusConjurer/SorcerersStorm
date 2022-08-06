@@ -218,7 +218,7 @@ public class UIManager : MonoBehaviour
         bossPanel = GameObject.Find("BossPanel");
 
         turnTracker = boardPanel.GetComponentInChildren<Slider>();
-        IncrementTurnTracker(9);
+        IncrementTurnTracker(9); //TODO: remove when task #5 is completed
 
         instructionText = GameObject.Find("InstructionText").GetComponent<Text>();
         instructionText.text = "Draw an Encounter";
@@ -452,8 +452,8 @@ public class UIManager : MonoBehaviour
         }
         else
         {
-            int startIndex = currentBossHealth - 1;
-            int finalIndex = startIndex + (amount - 1);
+            int startIndex = currentBossHealth;
+            int finalIndex = startIndex + (amount);
             for (int i = startIndex; i < finalIndex; i++)
             {
                 bossHealthBar[i].color = sorcererDarkGray;
