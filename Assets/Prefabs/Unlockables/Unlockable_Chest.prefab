@@ -181,12 +181,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardManager: {fileID: 0}
   selected: 0
-  EncounterType: 3
+  encounterType: 3
   winCriteria: 090000000a0000000b0000000c000000
-  WinResult: 0
-  WinResultAmount: 1
-  LossResult: 0
-  LossResultAmount: 1
+  winResult: 0
+  winResultAmount: 1
+  lossResult: 0
+  lossResultAmount: 1
 --- !u!61 &7156698768363102756
 BoxCollider2D:
   m_ObjectHideFlags: 0

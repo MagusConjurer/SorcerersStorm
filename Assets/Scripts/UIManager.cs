@@ -30,11 +30,15 @@ public class UIManager : MonoBehaviour
     private Button rollButton;
     private Button confirmItemButton;
     private Text instructionText;
-    private Text resultText;
 
     /// Boss
     private GameObject bossPanel;
     private Image[] bossHealthBar;
+    private Button bossEncounterButton;
+    private Button bossRollButton;
+    private Button mainMenuButton;
+    private Text bossInstructionText;
+    private bool atBoss;
     private int currentBossHealth;
     private string bossName = "The Sorcerer";
 
@@ -185,7 +189,7 @@ public class UIManager : MonoBehaviour
     {
         if(scene.name == "GameScene")
         {
-            Button mainMenuButton = GameObject.Find("LoadMainMenuButton").GetComponent<Button>();
+            mainMenuButton = GameObject.Find("LoadMainMenuButton").GetComponent<Button>();
             mainMenuButton.onClick.AddListener(LoadMainMenu);
         }
         if(scene.name == "MainMenu")
@@ -214,11 +218,15 @@ public class UIManager : MonoBehaviour
         bossPanel = GameObject.Find("BossPanel");
 
         turnTracker = boardPanel.GetComponentInChildren<Slider>();
+        IncrementTurnTracker(9);
+
         instructionText = GameObject.Find("InstructionText").GetComponent<Text>();
-        resultText = GameObject.Find("ResultText").GetComponent<Text>();
+        instructionText.text = "Draw an Encounter";
         keyCountText = GameObject.Find("KeyCountText").GetComponent<Text>();
         currentKeyCount = 0;
 
+        SetAtBoss(false);
+        bossInstructionText = GameObject.Find("BossInstructionText").GetComponent<Text>();
         bossHealthBar = GameObject.Find("BossHealthBar").GetComponentsInChildren<Image>();
         currentBossHealth = 5;
         foreach(Image bar in bossHealthBar)
@@ -250,6 +258,30 @@ public class UIManager : MonoBehaviour
                 confirmItemButton.gameObject.SetActive(false);
             }
         }
+
+        Button[] bossButtons = bossPanel.GetComponentsInChildren<Button>();
+        foreach(Button button in bossButtons)
+        {
+            button.onClick.RemoveAllListeners();
+            if(button.name == "BossEncounterButton")
+            {
+                bossEncounterButton = button;
+                button.onClick.AddListener(cardManager.DrawBossEncounter);
+                button.enabled = false;
+            }
+            else if(button.name == "BossDiceRollButton")
+            {
+                bossRollButton = button;
+                button.onClick.AddListener(cardManager.HandleRoll);
+                button.enabled = false;
+            }
+            else if(button.name == "LoadMainMenuButton")
+            {
+                mainMenuButton = button;
+                button.onClick.AddListener(LoadMainMenu);
+                button.enabled = false;
+            }
+        }
     }
 
     /// <summary>
@@ -262,6 +294,8 @@ public class UIManager : MonoBehaviour
             rosterPanel.SetActive(true);
             boardPanel.SetActive(false);
             bossPanel.SetActive(false);
+
+            SetAtBoss(false);
         }
         catch
         {
@@ -280,6 +314,8 @@ public class UIManager : MonoBehaviour
             rosterPanel.SetActive(false);
             boardPanel.SetActive(true);
             bossPanel.SetActive(false);
+
+            SetAtBoss(false);
         }
         catch
         {
@@ -289,7 +325,7 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Makes only the Boss panel active and sets the boss text
+    /// Makes only the Boss panel active and sets the boss title text
     /// </summary>
     public void DisplayBossPanel()
     {
@@ -299,12 +335,13 @@ public class UIManager : MonoBehaviour
             boardPanel.SetActive(false);
             bossPanel.SetActive(true);
 
-            Text bossText = bossPanel.GetComponentInChildren<Text>();
+            Text bossText = GameObject.Find("BossTitleText").GetComponent<Text>();
             bossText.text = $"BOSS: {bossName}";
+
+            SetAtBoss(true);
         }
         catch
         {
-
             LoadGamePanels();
             DisplayBossPanel();
         }
@@ -318,10 +355,28 @@ public class UIManager : MonoBehaviour
     /// <param name="needsToConfirmItem">Confirm button should be visible and enabled</param>
     public void UpdateGameButtons(bool canDrawEncounter, bool canRoll, bool needsToConfirmItem)
     {
-        encounterButton.enabled = canDrawEncounter;
-        rollButton.enabled = canRoll;
-        confirmItemButton.enabled = needsToConfirmItem;
-        confirmItemButton.gameObject.SetActive(needsToConfirmItem);
+        if(atBoss)
+        {
+            bossEncounterButton.enabled = canDrawEncounter;
+            bossRollButton.enabled = canRoll;
+            confirmItemButton.enabled = needsToConfirmItem;
+        }
+        else
+        {
+            encounterButton.enabled = canDrawEncounter;
+            rollButton.enabled = canRoll;
+            confirmItemButton.enabled = needsToConfirmItem;
+            confirmItemButton.gameObject.SetActive(needsToConfirmItem);
+        }
+    }
+
+    /// <summary>
+    /// Update whether the main menu button on the main menu is enabled and visible.
+    /// </summary>
+    public void EnableBossMainMenuButton(bool isEnabled)
+    {
+        mainMenuButton.enabled = isEnabled;
+        mainMenuButton.gameObject.SetActive(isEnabled);
     }
 
     /// <summary>
@@ -344,21 +399,18 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Used to update the result text displayed during encounters
-    /// </summary>
-    /// <param name="newText"></param>
-    public void UpdateResultText(string newText)
-    {
-        resultText.text = newText;
-    }
-
-    /// <summary>
     /// Used to update the instruction text during encounters
     /// </summary>
-    /// <param name="newText">The instructions</param>
     public void UpdateInstructionText(string newText)
     {
-        instructionText.text = newText;
+        if(atBoss)
+        {
+            bossInstructionText.text = newText;
+        }
+        else
+        {
+            instructionText.text = newText;
+        }
     }
 
     /// <summary>
@@ -377,6 +429,14 @@ public class UIManager : MonoBehaviour
     public int GetKeyCount()
     {
         return currentKeyCount;
+    }
+
+    /// <summary>
+    /// Get the current boss health value
+    /// </summary>
+    public int GetBossHealth()
+    {
+        return currentBossHealth;
     }
 
     /// <summary>
@@ -399,5 +459,13 @@ public class UIManager : MonoBehaviour
                 bossHealthBar[i].color = sorcererDarkGray;
             }
         }
+    }
+
+    /// <summary>
+    /// Update whether the player is at the boss stage
+    /// </summary>
+    private void SetAtBoss(bool status)
+    {
+        atBoss = status;
     }
 }
