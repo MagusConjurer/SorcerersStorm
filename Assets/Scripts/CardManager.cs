@@ -28,6 +28,7 @@ public class CardManager : MonoBehaviour
     private bool encounterItemSelected;
     private bool hasRolled;
     private List<EncounterCard> encounterDeck;
+    private List<EncounterCard> encounterDiscardDeck;
     private List<EncounterCard> itemDeck;
     private EncounterCard currentEncounter;
     private Transform encounterCardPosition;
@@ -41,6 +42,7 @@ public class CardManager : MonoBehaviour
     private bool inBossEncounter;
     private bool bossAlive;
     private List<BossEncounter> bossEncounterDeck;
+    private List<BossEncounter> bossEncounterDiscardDeck;
 
 
     // Start is called before the first frame update
@@ -123,6 +125,7 @@ public class CardManager : MonoBehaviour
         bossAlive = false;
 
         encounterDeck = new List<EncounterCard>();
+        encounterDiscardDeck = new List<EncounterCard>();
         encounterDeck.AddRange(GameObject.Find("Encounters").GetComponentsInChildren<EncounterCard>());
         encounterCardPosition = GameObject.Find("EncounterCardPosition").GetComponent<Transform>();
 
@@ -146,11 +149,36 @@ public class CardManager : MonoBehaviour
     private void LoadBossEncounters()
     {
         bossEncounterDeck = new List<BossEncounter>();
+        bossEncounterDiscardDeck = new List<BossEncounter>();
         bossEncounterDeck.AddRange(GameObject.Find("BossEncounters").GetComponentsInChildren<BossEncounter>());
 
         foreach (BossEncounter card in bossEncounterDeck)
         {
             card.gameObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Take all of the cards in the discard list and add them back into the main deck.
+    /// </summary>
+    /// <param name="atBoss">Whether to reshuffle the regular or boss encounters</param>
+    private void ReshuffleEncounterCards(bool atBoss)
+    {
+        if(atBoss)
+        {
+            for(int i = bossEncounterDiscardDeck.Count - 1; i > 0; i--)
+            {
+                bossEncounterDeck.Add(bossEncounterDiscardDeck[i]);
+                bossEncounterDiscardDeck.RemoveAt(i);
+            }
+        }
+        else
+        {
+            for (int i = encounterDiscardDeck.Count - 1; i >= 0; i--)
+            {
+                encounterDeck.Add(encounterDiscardDeck[i]);
+                encounterDiscardDeck.RemoveAt(i);
+            }
         }
     }
 
@@ -248,13 +276,14 @@ public class CardManager : MonoBehaviour
         {
             if (encounterDeck.Count == 0)
             {
-                LoadEncounters();
+                ReshuffleEncounterCards(false);
             }
             else
             {
                 int randIndex = Random.Range(0, encounterDeck.Count);
                 currentEncounter = encounterDeck[randIndex];
                 encounterDeck.RemoveAt(randIndex);
+                encounterDiscardDeck.Add(currentEncounter);
             }
 
             if(currentEncounter.GetEncounterType() == "Enemy")
@@ -281,6 +310,7 @@ public class CardManager : MonoBehaviour
                 secondItem.gameObject.SetActive(true);
                 itemDeck.RemoveAt(randItemIndex);
                 encounterDeck.Remove(secondItem);
+                encounterDiscardDeck.Add(secondItem);
 
                 inItemEncounter = true;
                 encounterItemSelected = false;
@@ -682,13 +712,14 @@ public class CardManager : MonoBehaviour
         {
             if (bossEncounterDeck.Count == 0)
             {
-                LoadBossEncounters();
+                ReshuffleEncounterCards(true);
             }
 
             int randIndex = Random.Range(0, bossEncounterDeck.Count);
             currentEncounter = bossEncounterDeck[randIndex];
             bossEncounterDeck.RemoveAt(randIndex);
-            
+            bossEncounterDiscardDeck.Add((BossEncounter)currentEncounter);
+
             currentEncounter.gameObject.SetActive(true);
             currentEncounter.transform.position = encounterCardPosition.position;
 
