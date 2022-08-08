@@ -93,40 +93,48 @@ public class CharacterCard : Card
 
     private void SetHealth(int value)
     {
-        if(currentHealth >= 0 && value >= 0)
+        currentHealth = value;
+        if (currentHealth < 0) currentHealth = 0;
+
+        if (currentHealth >= 0 && value >= 0)
         {
             SpriteRenderer[] healthSprites = GetStatSprites("Health");
-            currentHealth = value;
             SetStatSprites(healthSprites, value);
         }
     }
 
     private void SetStrength(int value)
     {
-        if(currentStrength >= 0 && value >= 0)
+        currentStrength = value;
+        if (currentStrength < 0) currentStrength = 0;
+
+        if (currentStrength >= 0 && value >= 0)
         {
             SpriteRenderer[] strengthSprites = GetStatSprites("Strength");
-            currentStrength = value;
             SetStatSprites(strengthSprites, value);
         }
     }
 
     private void SetAccuracy(int value)
     {
-        if(currentAccuracy >= 0 && value >= 0)
+        currentAccuracy = value;
+        if(currentAccuracy < 0) currentAccuracy = 0;
+
+        if (currentAccuracy >= 0 && value >= 0)
         {
-            SpriteRenderer[] accuracySprites = GetStatSprites("Accuracy");
-            currentAccuracy = value;
+            SpriteRenderer[] accuracySprites = GetStatSprites("Accuracy");    
             SetStatSprites(accuracySprites, value);
         }
     }
 
     private void SetStealth(int value)
     {
-        if(currentStealth >= 0 && value >= 0)
+        currentStealth = value;
+        if (currentStealth < 0) currentStealth = 0;
+
+        if (currentStealth >= 0 && value >= 0)
         {
             SpriteRenderer[] stealthSprites = GetStatSprites("Stealth");
-            currentStealth = value;
             SetStatSprites(stealthSprites, value);
         }
     }
