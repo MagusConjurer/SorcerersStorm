@@ -17,8 +17,8 @@ public class CardManager : MonoBehaviour
     private bool encounterCharacterSelected;
     private bool gameLoaded;
     private bool[] availableCharacterTeamPositions;
-    public bool fullTeamSelected;
-    public int characterCount;
+    private bool fullTeamSelected;
+    private int characterCount;
 
     // Encounters
     private bool outOfTurns;
@@ -93,8 +93,16 @@ public class CardManager : MonoBehaviour
         characterDeck.AddRange(GameObject.Find("CharacterCards").GetComponentsInChildren<CharacterCard>());
         for (int i = 0; i < characterDeck.Count; i++)
         {
-            characterDeck[i].gameObject.SetActive(true);
-            characterDeck[i].transform.position = characterRosterPositions[i].position;
+            if(i < characterRosterPositions.Count)
+            {
+                characterDeck[i].gameObject.SetActive(true);
+                characterDeck[i].transform.position = characterRosterPositions[i].position;
+            }
+            else
+            {
+                characterDeck[i].gameObject.SetActive(false);
+            }
+            
         }
 
         availableCharacterTeamPositions = new bool[4];
@@ -639,6 +647,17 @@ public class CardManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Used after all selected characters are removed from the deck to remove the rest from the board.
+    /// </summary>
+    private void HideRemainingCharacters()
+    {
+        foreach(CharacterCard card in characterDeck)
+        {
+            card.gameObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
     /// Moves the selected characters to their corresponding team positions.
     /// </summary>
     private void MoveAllToTeamPositions()
@@ -656,6 +675,8 @@ public class CardManager : MonoBehaviour
                 characterDeck.Remove(characterCard);
             }
         }
+
+        HideRemainingCharacters();
     }
 
     /// <summary>
