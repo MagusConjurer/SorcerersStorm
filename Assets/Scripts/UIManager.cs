@@ -19,6 +19,9 @@ public class UIManager : MonoBehaviour
     private CardManager cardManager;
     /// Team & Characters
     private GameObject rosterPanel;
+    private Text rosterText;
+    private Button confirmTeamButton;
+
     private GameObject teamPanel;
     private Text keyCountText;
     private int currentKeyCount;
@@ -217,6 +220,12 @@ public class UIManager : MonoBehaviour
         teamPanel = GameObject.Find("TeamPanel");
         bossPanel = GameObject.Find("BossPanel");
 
+        rosterText = GameObject.Find("RosterText").GetComponent<Text>();
+        confirmTeamButton = GameObject.Find("ConfirmTeamButton").GetComponent<Button>();
+        confirmTeamButton.onClick.RemoveAllListeners();
+        confirmTeamButton.onClick.AddListener(cardManager.ConfirmTeam);
+        confirmTeamButton.enabled = false;
+
         turnTracker = boardPanel.GetComponentInChildren<Slider>();
 
         instructionText = GameObject.Find("InstructionText").GetComponent<Text>();
@@ -344,6 +353,15 @@ public class UIManager : MonoBehaviour
             LoadGamePanels();
             DisplayBossPanel();
         }
+    }
+
+    /// <summary>
+    /// Method called during the team selection phase to enable/disable the confirm button
+    /// </summary>
+    /// <param name="status"></param>
+    public void CanConfirmTeam(bool status)
+    {
+        confirmTeamButton.enabled = status;
     }
 
     /// <summary>

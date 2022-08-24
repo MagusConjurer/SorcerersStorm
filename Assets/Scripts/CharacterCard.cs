@@ -12,6 +12,7 @@ public class CharacterCard : Card
     public int placedIndex;
     public bool isAlive;
     public bool inTeam;
+    public bool confirmedInTeam;
 
     protected override void Start()
     {
@@ -154,7 +155,14 @@ public class CharacterCard : Card
         }
         else
         {
-            cardManager.UnsetCurrentCharacter(this);
+            if(inTeam = true && confirmedInTeam == false)
+            {
+                cardManager.RemoveFromTeam(this);
+            }
+            else
+            {
+                cardManager.UnsetCurrentCharacter(this);
+            }
         }
     }
 

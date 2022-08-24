@@ -626,7 +626,7 @@ public class CardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when a character card is clicked on
+    /// Called when a character card is clicked on during the team selection phase
     /// </summary>
     /// <param name="characterCard"></param>
     public void AddToTeam(CharacterCard characterCard)
@@ -636,13 +636,48 @@ public class CardManager : MonoBehaviour
             characterSelectedDeck.Add(characterCard);
             characterCard.inTeam = true;
             characterCard.SelectCard();
-            if (characterSelectedDeck.Count == 4)
+            characterCount++;
+            if (characterCount == 4)
             {
-                characterCount = 4;
                 fullTeamSelected = true;
-                Invoke(nameof(MoveAllToTeamPositions), .5f);
-                Invoke(nameof(DisplayBoard), .75f);
+                uiManager.CanConfirmTeam(true);
             }
+        }
+    }
+
+    /// <summary>
+    /// Called when a character already on the team is clicked on during the team selection phase
+    /// </summary>
+    /// <param name="characterCard"></param>
+    public void RemoveFromTeam(CharacterCard characterCard)
+    {
+        if(characterSelectedDeck.Contains(characterCard) == true)
+        {
+            characterSelectedDeck.Remove(characterCard);
+            characterCard.inTeam = false;
+            characterCard.UnselectCard();
+            characterCount--;
+            if(characterCount < 4)
+            {
+                fullTeamSelected = false;
+                uiManager.CanConfirmTeam(false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Method called by the confirm button during the team selection phase
+    /// </summary>
+    public void ConfirmTeam()
+    {
+        if(characterCount == 4)
+        {
+            foreach(CharacterCard card in characterSelectedDeck)
+            {
+                card.confirmedInTeam = true;
+            }
+            Invoke(nameof(MoveAllToTeamPositions), .5f);
+            Invoke(nameof(DisplayBoard), .75f);
         }
     }
 
