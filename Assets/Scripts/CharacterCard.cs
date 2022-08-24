@@ -152,6 +152,10 @@ public class CharacterCard : Card
                 cardManager.SetCurrentCharacter(this);
             }
         }
+        else
+        {
+            cardManager.UnsetCurrentCharacter(this);
+        }
     }
 
     /// <summary>

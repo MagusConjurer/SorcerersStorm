@@ -723,6 +723,32 @@ public class CardManager : MonoBehaviour
             UpdateButtons();
         }
     }
+
+    /// <summary>
+    /// Used in the OnMousedown function within the CharacterCard to unselect them
+    /// </summary>
+    /// <param name="characterCard"></param>
+    public void UnsetCurrentCharacter(CharacterCard characterCard)
+    {
+        if ((inEnemyEncounter || inUnlockableStealthEncounter || inBossEncounter) && encounterCharacterSelected)
+        {
+            currentCharacter = characterCard;
+            characterCard.UnselectCard();
+            encounterCharacterSelected = false;
+            MoveToTeamPosition(currentCharacter);
+            uiManager.UpdateInstructionText("Choose a Character");
+            UpdateButtons();
+        }
+        else if (inItemEncounter && encounterItemSelected && encounterCharacterSelected)
+        {
+            currentCharacter = characterCard;
+            characterCard.UnselectCard();
+            encounterCharacterSelected = false;
+            MoveToTeamPosition(currentCharacter);
+            uiManager.UpdateInstructionText("Choose a Character");
+            UpdateButtons();
+        }
+    }
     
     /// <summary>
     /// Used by the CharacterCard class to decrease the count when a character dies
