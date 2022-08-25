@@ -1,0 +1,453 @@
+fileFormatVersion: 2
+guid: 0957e24e684484e4781a5208b943927d
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -2122722683227879403
+    second: SorcerersStormCharacterCards_0
+  - first:
+      213: 6526822213527453768
+    second: SorcerersStormCharacterCards_1
+  - first:
+      213: -3478606098183458294
+    second: SorcerersStormCharacterCards_2
+  - first:
+      213: -3452581701945720335
+    second: SorcerersStormCharacterCards_3
+  - first:
+      213: 5217222207228994482
+    second: SorcerersStormCharacterCards_4
+  - first:
+      213: 1799949587699619042
+    second: SorcerersStormCharacterCards_5
+  - first:
+      213: -1572432816386634764
+    second: SorcerersStormCharacterCards_6
+  - first:
+      213: -3560242212578774763
+    second: SorcerersStormCharacterCards_7
+  - first:
+      213: 9185570749477891829
+    second: SorcerersStormCharacterCards_8
+  - first:
+      213: 7592428654846403358
+    second: SorcerersStormCharacterCards_9
+  - first:
+      213: -3888618456395748981
+    second: SorcerersStormCharacterCards_10
+  - first:
+      213: -8673724073810143722
+    second: SorcerersStormCharacterCards_11
+  - first:
+      213: -5655035931812519498
+    second: SorcerersStormCharacterCards_12
+  - first:
+      213: 7484113899232967590
+    second: SorcerersStormCharacterCards_13
+  - first:
+      213: 679138196416241113
+    second: SorcerersStormCharacterCards_14
+  - first:
+      213: 4906727364223264782
+    second: SorcerersStormCharacterCards_15
+  - first:
+      213: 9169057178518861259
+    second: SorcerersStormCharacterCards_16
+  - first:
+      213: -2659550099775099628
+    second: SorcerersStormCharacterCards_17
+  - first:
+      213: 876545407208358828
+    second: SorcerersStormCharacterCards_18
+  - first:
+      213: 433398490996727547
+    second: SorcerersStormCharacterCards_19
+  - first:
+      213: -5827860393608527705
+    second: SorcerersStormCharacterCards_20
+  - first:
+      213: -2847581622696835061
+    second: SorcerersStormCharacterCards_21
+  - first:
+      213: 4995685946824078961
+    second: SorcerersStormCharacterCards_22
+  - first:
+      213: 4326675461009236577
+    second: SorcerersStormCharacterCards_23
+  - first:
+      213: 4073370465793061751
+    second: SorcerersStormCharacterCards_24
+  - first:
+      213: 7832607911981797404
+    second: SorcerersStormCharacterCards_25
+  - first:
+      213: -791136466909562582
+    second: SorcerersStormCharacterCards_26
+  - first:
+      213: -5407093152583962855
+    second: SorcerersStormCharacterCards_27
+  - first:
+      213: 8293330105955827861
+    second: SorcerersStormCharacterCards_28
+  - first:
+      213: 4427648143470246978
+    second: SorcerersStormCharacterCards_29
+  - first:
+      213: -7645895276657299570
+    second: SorcerersStormCharacterCards_30
+  - first:
+      213: 2488625387996334739
+    second: SorcerersStormCharacterCards_31
+  - first:
+      213: -4469493589130461594
+    second: SorcerersStormCharacterCards_32
+  - first:
+      213: -851906053029549329
+    second: SorcerersStormCharacterCards_33
+  - first:
+      213: -8327970637244474723
+    second: SorcerersStormCharacterCards_34
+  - first:
+      213: -6491602154340582485
+    second: SorcerersStormCharacterCards_35
+  - first:
+      213: -5291430881551746726
+    second: SorcerersStormCharacterCards_36
+  - first:
+      213: -8943316297238575713
+    second: SorcerersStormCharacterCards_37
+  - first:
+      213: 709923241817125128
+    second: SorcerersStormCharacterCards_38
+  - first:
+      213: 4260327400167066395
+    second: SorcerersStormCharacterCards_39
+  - first:
+      213: 163550543171555930
+    second: SorcerersStormCharacterCards_40
+  - first:
+      213: -7242266767268680267
+    second: SorcerersStormCharacterCards_41
+  - first:
+      213: 4355804004423927227
+    second: SorcerersStormCharacterCards_42
+  - first:
+      213: 5963943644120771909
+    second: SorcerersStormCharacterCards_43
+  - first:
+      213: 6275784613415435862
+    second: SorcerersStormCharacterCards_44
+  - first:
+      213: 7902190452105041597
+    second: SorcerersStormCharacterCards_45
+  - first:
+      213: 246797334204689006
+    second: SorcerersStormCharacterCards_46
+  - first:
+      213: -314431731638402187
+    second: SorcerersStormCharacterCards_47
+  externalObjects: {}
+  serializedVersion: 11
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 300
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 1
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 4096
+    resizeAlgorithm: 1
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: WebGL
+    maxTextureSize: 4096
+    resizeAlgorithm: 1
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SorcerersStormCharacterCards_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1599
+        width: 1335
+        height: 535
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 518c98d57f29a82e0800000000000000
+      internalID: -2122722683227879403
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SorcerersStormCharacterCards_1
+      rect:
+        serializedVersion: 2
+        x: 1466
+        y: 1599
+        width: 1336
+        height: 535
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 840ce6df83ee39a50800000000000000
+      internalID: 6526822213527453768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SorcerersStormCharacterCards_2
+      rect:
+        serializedVersion: 2
+        x: 2933
+        y: 1599
+        width: 1335
+        height: 535
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a0274442f2289bfc0800000000000000
+      internalID: -3478606098183458294
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SorcerersStormCharacterCards_3
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 799
+        width: 1335
+        height: 536
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1f103811c37f510d0800000000000000
+      internalID: -3452581701945720335
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SorcerersStormCharacterCards_4
+      rect:
+        serializedVersion: 2
+        x: 1466
+        y: 799
+        width: 1336
+        height: 536
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b3e92894fb476840800000000000000
+      internalID: 5217222207228994482
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SorcerersStormCharacterCards_5
+      rect:
+        serializedVersion: 2
+        x: 2933
+        y: 799
+        width: 1335
+        height: 536
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2e4527c0d94baf810800000000000000
+      internalID: 1799949587699619042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SorcerersStormCharacterCards_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1335
+        height: 535
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4fb8b124fa89d2ae0800000000000000
+      internalID: -1572432816386634764
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SorcerersStormCharacterCards_7
+      rect:
+        serializedVersion: 2
+        x: 1466
+        y: 0
+        width: 1336
+        height: 535
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 51134e4129a779ec0800000000000000
+      internalID: -3560242212578774763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SorcerersStormCharacterCards_8
+      rect:
+        serializedVersion: 2
+        x: 2933
+        y: 0
+        width: 1335
+        height: 535
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5fe29ddede3b97f70800000000000000
+      internalID: 9185570749477891829
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+  spritePackingTag: 
+  pSDRemoveMatte: 0
+  pSDShowRemoveMatteOption: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -17,8 +17,8 @@ public class CardManager : MonoBehaviour
     private bool encounterCharacterSelected;
     private bool gameLoaded;
     private bool[] availableCharacterTeamPositions;
-    public bool fullTeamSelected;
-    public int characterCount;
+    private bool fullTeamSelected;
+    private int characterCount;
 
     // Encounters
     private bool outOfTurns;
@@ -93,8 +93,16 @@ public class CardManager : MonoBehaviour
         characterDeck.AddRange(GameObject.Find("CharacterCards").GetComponentsInChildren<CharacterCard>());
         for (int i = 0; i < characterDeck.Count; i++)
         {
-            characterDeck[i].gameObject.SetActive(true);
-            characterDeck[i].transform.position = characterRosterPositions[i].position;
+            if(i < characterRosterPositions.Count)
+            {
+                characterDeck[i].gameObject.SetActive(true);
+                characterDeck[i].transform.position = characterRosterPositions[i].position;
+            }
+            else
+            {
+                characterDeck[i].gameObject.SetActive(false);
+            }
+            
         }
 
         availableCharacterTeamPositions = new bool[4];
@@ -618,7 +626,7 @@ public class CardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when a character card is clicked on
+    /// Called when a character card is clicked on during the team selection phase
     /// </summary>
     /// <param name="characterCard"></param>
     public void AddToTeam(CharacterCard characterCard)
@@ -628,13 +636,59 @@ public class CardManager : MonoBehaviour
             characterSelectedDeck.Add(characterCard);
             characterCard.inTeam = true;
             characterCard.SelectCard();
-            if (characterSelectedDeck.Count == 4)
+            characterCount++;
+            if (characterCount == 4)
             {
-                characterCount = 4;
                 fullTeamSelected = true;
-                Invoke(nameof(MoveAllToTeamPositions), .5f);
-                Invoke(nameof(DisplayBoard), .75f);
+                uiManager.CanConfirmTeam(true);
             }
+        }
+    }
+
+    /// <summary>
+    /// Called when a character already on the team is clicked on during the team selection phase
+    /// </summary>
+    /// <param name="characterCard"></param>
+    public void RemoveFromTeam(CharacterCard characterCard)
+    {
+        if(characterSelectedDeck.Contains(characterCard) == true)
+        {
+            characterSelectedDeck.Remove(characterCard);
+            characterCard.inTeam = false;
+            characterCard.UnselectCard();
+            characterCount--;
+            if(characterCount < 4)
+            {
+                fullTeamSelected = false;
+                uiManager.CanConfirmTeam(false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Method called by the confirm button during the team selection phase
+    /// </summary>
+    public void ConfirmTeam()
+    {
+        if(characterCount == 4)
+        {
+            foreach(CharacterCard card in characterSelectedDeck)
+            {
+                card.confirmedInTeam = true;
+            }
+            Invoke(nameof(MoveAllToTeamPositions), .5f);
+            Invoke(nameof(DisplayBoard), .75f);
+        }
+    }
+
+    /// <summary>
+    /// Used after all selected characters are removed from the deck to remove the rest from the board.
+    /// </summary>
+    private void HideRemainingCharacters()
+    {
+        foreach(CharacterCard card in characterDeck)
+        {
+            card.gameObject.SetActive(false);
         }
     }
 
@@ -656,6 +710,8 @@ public class CardManager : MonoBehaviour
                 characterDeck.Remove(characterCard);
             }
         }
+
+        HideRemainingCharacters();
     }
 
     /// <summary>
@@ -699,6 +755,32 @@ public class CardManager : MonoBehaviour
             encounterCharacterSelected = true;
             MoveToEncounterPosition(currentCharacter);
             uiManager.UpdateInstructionText("Confirm Selection");
+            UpdateButtons();
+        }
+    }
+
+    /// <summary>
+    /// Used in the OnMousedown function within the CharacterCard to unselect them
+    /// </summary>
+    /// <param name="characterCard"></param>
+    public void UnsetCurrentCharacter(CharacterCard characterCard)
+    {
+        if ((inEnemyEncounter || inUnlockableStealthEncounter || inBossEncounter) && encounterCharacterSelected)
+        {
+            currentCharacter = characterCard;
+            characterCard.UnselectCard();
+            encounterCharacterSelected = false;
+            MoveToTeamPosition(currentCharacter);
+            uiManager.UpdateInstructionText("Choose a Character");
+            UpdateButtons();
+        }
+        else if (inItemEncounter && encounterItemSelected && encounterCharacterSelected)
+        {
+            currentCharacter = characterCard;
+            characterCard.UnselectCard();
+            encounterCharacterSelected = false;
+            MoveToTeamPosition(currentCharacter);
+            uiManager.UpdateInstructionText("Choose a Character");
             UpdateButtons();
         }
     }
