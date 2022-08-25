@@ -362,6 +362,15 @@ public class UIManager : MonoBehaviour
     public void CanConfirmTeam(bool status)
     {
         confirmTeamButton.enabled = status;
+
+        if(status == true)
+        {
+            rosterText.text = "Confirm or Change Your Selection";
+        }
+        else
+        {
+            rosterText.text = "Select Your Four Characters";
+        }
     }
 
     /// <summary>

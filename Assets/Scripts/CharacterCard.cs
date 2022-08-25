@@ -155,7 +155,7 @@ public class CharacterCard : Card
         }
         else
         {
-            if(inTeam = true && confirmedInTeam == false)
+            if(inTeam == true && confirmedInTeam == false)
             {
                 cardManager.RemoveFromTeam(this);
             }
