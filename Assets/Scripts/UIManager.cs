@@ -379,21 +379,63 @@ public class UIManager : MonoBehaviour
     /// <param name="canDrawEncounter">Draw Encounter button should be enabled</param>
     /// <param name="canRoll">Roll button should be enabled</param>
     /// <param name="needsToConfirmItem">Confirm button should be visible and enabled</param>
-    public void UpdateGameButtons(bool canDrawEncounter, bool canRoll, bool needsToConfirmItem)
+    //public void UpdateGameButtons(bool canDrawEncounter, bool canRoll, bool needsToConfirmItem)
+    //{
+    //    if(atBoss)
+    //    {
+    //        bossEncounterButton.enabled = canDrawEncounter;
+    //        bossRollButton.enabled = canRoll;
+    //        confirmItemButton.enabled = needsToConfirmItem;
+    //    }
+    //    else
+    //    {
+    //        encounterButton.enabled = canDrawEncounter;
+    //        rollButton.enabled = canRoll;
+    //        confirmItemButton.enabled = needsToConfirmItem;
+    //        confirmItemButton.gameObject.SetActive(needsToConfirmItem);
+    //    }
+    //}
+
+    /// <summary>
+    /// Changes the state of the regular Draw Encounter button
+    /// </summary>
+    /// <param name="canDraw">Whether the button should be enabled</param>
+    public void EnableDrawEncounterButton(bool canDraw)
     {
-        if(atBoss)
-        {
-            bossEncounterButton.enabled = canDrawEncounter;
-            bossRollButton.enabled = canRoll;
-            confirmItemButton.enabled = needsToConfirmItem;
-        }
-        else
-        {
-            encounterButton.enabled = canDrawEncounter;
-            rollButton.enabled = canRoll;
-            confirmItemButton.enabled = needsToConfirmItem;
-            confirmItemButton.gameObject.SetActive(needsToConfirmItem);
-        }
+        encounterButton.enabled = canDraw;
+    }
+    /// <summary>
+    /// Changes the state of the regular Roll button
+    /// </summary>
+    /// <param name="canDraw">Whether the button should be enabled</param>
+    public void EnableRollButton(bool canRoll)
+    {
+        rollButton.enabled = canRoll;
+    }
+    /// <summary>
+    /// Changes the state of the Confirm button during item encounters
+    /// </summary>
+    /// <param name="canDraw">Whether the button should be enabled/visible</param>
+    public void EnableItemConfirmButton(bool canConfirmItem)
+    {
+        confirmItemButton.enabled = canConfirmItem;
+        confirmItemButton.gameObject.SetActive(canConfirmItem);
+    }
+    /// <summary>
+    /// Changes the state of the Draw Encounter button during the Boss 
+    /// </summary>
+    /// <param name="canDraw">Whether the button should be enabled</param>
+    public void EnableBossEncounterButton(bool canBossDraw)
+    {
+        bossEncounterButton.enabled = canBossDraw;
+    }
+    /// <summary>
+    /// Changes the state of the Roll button during the Boss
+    /// </summary>
+    /// <param name="canDraw">Whether the button should be enabled</param>
+    public void EnableBossRollButton(bool canBossRoll)
+    {
+        bossRollButton.enabled = canBossRoll;
     }
 
     /// <summary>
