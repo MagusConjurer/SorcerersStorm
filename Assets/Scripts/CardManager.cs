@@ -217,7 +217,7 @@ public class CardManager : MonoBehaviour
         /// Can roll if in an enemy/unlockable encounter
         bool canRoll;
         /// Can confirm if in an item encounter with the item and character selected
-        bool needsToConfirmItem;
+        bool needsToConfirmItem; // TODO: Review how to adjust this variable
 
         bool playerAlive = characterCount > 0;
 
@@ -353,12 +353,6 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void EndEncounter()
     {
-        inEnemyEncounter = false;
-        inItemEncounter = false;
-        inUnlockableStealthEncounter = false;
-        encounterCharacterSelected = false;
-        inBossEncounter = false;
-
         if (currentCharacter != null)
         {
             MoveToTeamPosition(currentCharacter);
@@ -375,20 +369,26 @@ public class CardManager : MonoBehaviour
         }
         else if(!bossAlive && outOfTurns)
         {
+            inBossEncounter = false;
             UpdateButtons();
         }
         else
         {
             IncrementTurnTracker(1);
+            encounterCharacterSelected = false;
 
             if (currentEncounter.GetEncounterType() == "Enemy" || currentEncounter.GetEncounterType() == "Unlockable")
             {
                 currentEncounter.gameObject.SetActive(false);
+                inEnemyEncounter = false;                
+                inUnlockableStealthEncounter = false;
             }
             else if (currentEncounter.GetEncounterType() == "Item")
             {
                 firstItem.gameObject.SetActive(false);
                 secondItem.gameObject.SetActive(false);
+                inItemEncounter = false;
+                encounterItemSelected = false;
             }
 
             if (outOfTurns == false)
@@ -486,9 +486,6 @@ public class CardManager : MonoBehaviour
             firstItem.gameObject.SetActive(false);
         }
 
-        inItemEncounter = false;
-        encounterItemSelected = false;
-        UpdateButtons();
         Invoke(nameof(EndEncounter), 2.0f);
     }
 
