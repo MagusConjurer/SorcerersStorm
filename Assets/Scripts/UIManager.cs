@@ -361,6 +361,7 @@ public class UIManager : MonoBehaviour
     /// <param name="status"></param>
     public void CanConfirmTeam(bool status)
     {
+        confirmTeamButton.gameObject.SetActive(status);
         confirmTeamButton.enabled = status;
 
         if(status == true)
@@ -372,29 +373,6 @@ public class UIManager : MonoBehaviour
             rosterText.text = "Select Your Four Characters";
         }
     }
-
-    /// <summary>
-    /// Changes which buttons are enabled based on the parameters.
-    /// </summary>
-    /// <param name="canDrawEncounter">Draw Encounter button should be enabled</param>
-    /// <param name="canRoll">Roll button should be enabled</param>
-    /// <param name="needsToConfirmItem">Confirm button should be visible and enabled</param>
-    //public void UpdateGameButtons(bool canDrawEncounter, bool canRoll, bool needsToConfirmItem)
-    //{
-    //    if(atBoss)
-    //    {
-    //        bossEncounterButton.enabled = canDrawEncounter;
-    //        bossRollButton.enabled = canRoll;
-    //        confirmItemButton.enabled = needsToConfirmItem;
-    //    }
-    //    else
-    //    {
-    //        encounterButton.enabled = canDrawEncounter;
-    //        rollButton.enabled = canRoll;
-    //        confirmItemButton.enabled = needsToConfirmItem;
-    //        confirmItemButton.gameObject.SetActive(needsToConfirmItem);
-    //    }
-    //}
 
     /// <summary>
     /// Changes the state of the regular Draw Encounter button
