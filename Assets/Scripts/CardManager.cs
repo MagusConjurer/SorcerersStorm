@@ -24,7 +24,8 @@ public class CardManager : MonoBehaviour
     private bool outOfTurns;
     private bool inEnemyEncounter;
     private bool inItemEncounter;
-    private bool inUnlockableStealthEncounter;
+    private bool hasConfirmedItem;
+    private bool inUnlockableEncounter;
     private bool encounterItemSelected;
     private bool hasRolled;
     private List<EncounterCard> encounterDeck;
@@ -208,44 +209,106 @@ public class CardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Enables/disable the card and dice buttons based on the state of the game
+    /// Method used to update which buttons are active during standard encounters, the boss, and when the player dies.
     /// </summary>
     private void UpdateButtons()
     {
-        /// Can draw if not in an encounter or out of turns
-        bool canDrawEncounter;
-        /// Can roll if in an enemy/unlockable encounter
-        bool canRoll;
-        /// Can confirm if in an item encounter with the item and character selected
-        bool needsToConfirmItem;
-
         bool playerAlive = characterCount > 0;
 
-        if (bossAlive && playerAlive && outOfTurns)
+        if (playerAlive && outOfTurns)
         {
-            canDrawEncounter   = !inBossEncounter;
-            canRoll            = inBossEncounter && encounterCharacterSelected && !hasRolled;
-            needsToConfirmItem = false;
-
-            uiManager.EnableBossMainMenuButton(false);
+            UpdateBossButtons();
         }
-        else if((!bossAlive || !playerAlive) && outOfTurns)
+        else if((!playerAlive) && outOfTurns)
         {
-            canDrawEncounter   = false;
-            canRoll            = false;
-            needsToConfirmItem = false;
+            UpdateBossButtons();
  
             EndGame(playerAlive);
-            uiManager.EnableBossMainMenuButton(true);
         }
         else
         {
-            canDrawEncounter   = (!inEnemyEncounter && !inItemEncounter && !inUnlockableStealthEncounter && !outOfTurns);
-            canRoll            = ((inEnemyEncounter || inUnlockableStealthEncounter) && encounterCharacterSelected && !hasRolled);
-            needsToConfirmItem = (inItemEncounter && encounterItemSelected && encounterCharacterSelected);
+            UpdateEncounterButtons();
+        }
+    }
+    /// <summary>
+    /// Method used to update enemy encounter specific buttons using related flags
+    /// </summary>
+    private void UpdateEnemyButtons()
+    {
+        uiManager.EnableDrawEncounterButton(!inEnemyEncounter && 
+                                            !outOfTurns);
+        uiManager.EnableRollButton(inEnemyEncounter && 
+                                   encounterCharacterSelected && 
+                                   !hasRolled);
+    }
+    /// <summary>
+    /// Method used to update unlockable encounter specific buttons using related flags
+    /// </summary>
+    private void UpdateUnlockableButtons()
+    {
+        uiManager.EnableDrawEncounterButton(!inUnlockableEncounter && 
+                                            !outOfTurns);
+        uiManager.EnableRollButton(inUnlockableEncounter && 
+                                   encounterCharacterSelected && 
+                                   !hasRolled);
+    }
+    /// <summary>
+    /// Method used to update item encounter specific buttons using related flags
+    /// </summary>
+    private void UpdateItemButtons()
+    {
+        uiManager.EnableDrawEncounterButton(!inItemEncounter && 
+                                            !outOfTurns);
+        uiManager.EnableItemConfirmButton(inItemEncounter && 
+                                          encounterItemSelected && 
+                                          encounterCharacterSelected && 
+                                          !hasConfirmedItem);
+    }
+    /// <summary>
+    /// Method used to update boss specific buttons using related flags
+    /// </summary>
+    private void UpdateBossButtons()
+    {
+        if (outOfTurns)
+        {
+            if (bossAlive)
+            {
+                uiManager.EnableBossEncounterButton(!inBossEncounter);
+                uiManager.EnableBossRollButton(inBossEncounter && 
+                                               encounterCharacterSelected && 
+                                               !hasRolled);
+                uiManager.EnableBossMainMenuButton(false);
+            }
+            else
+            {
+                uiManager.EnableBossEncounterButton(false);
+                uiManager.EnableBossRollButton(false);
+                uiManager.EnableBossMainMenuButton(true);
+
+                EndGame(characterCount > 0);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Calls the method specific to update buttons based on encounter type
+    /// </summary>
+    private void UpdateEncounterButtons()
+    {
+        string encounterType = currentEncounter.GetEncounterType();
+        switch (encounterType)
+        {
+            case "Enemy":
+                UpdateEnemyButtons();
+                break;
+            case "Item":
+                UpdateItemButtons();
+                break;
+            case "Unlockable":
+                UpdateUnlockableButtons();
+                break;
         }
 
-        uiManager.UpdateGameButtons(canDrawEncounter, canRoll, needsToConfirmItem);
     }
 
     /// <summary>
@@ -323,7 +386,7 @@ public class CardManager : MonoBehaviour
 
                 inItemEncounter = true;
                 encounterItemSelected = false;
-                uiManager.UpdateInstructionText("Choose an Item");   
+                uiManager.UpdateInstructionText("Choose an Item");
             }
             else if (currentEncounter.GetEncounterType() == "Unlockable")
             {
@@ -338,7 +401,7 @@ public class CardManager : MonoBehaviour
                 }
                 else
                 {
-                    inUnlockableStealthEncounter = true;
+                    inUnlockableEncounter = true;
                     hasRolled = false;
                     uiManager.UpdateInstructionText("Choose a Character");
                 }
@@ -353,12 +416,6 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void EndEncounter()
     {
-        inEnemyEncounter = false;
-        inItemEncounter = false;
-        inUnlockableStealthEncounter = false;
-        encounterCharacterSelected = false;
-        inBossEncounter = false;
-
         if (currentCharacter != null)
         {
             MoveToTeamPosition(currentCharacter);
@@ -371,36 +428,46 @@ public class CardManager : MonoBehaviour
             currentEncounter.gameObject.SetActive(false);
 
             uiManager.UpdateInstructionText("Draw an Encounter");
-            UpdateButtons();
         }
         else if(!bossAlive && outOfTurns)
         {
-            UpdateButtons();
+            inBossEncounter = false;
         }
         else
         {
             IncrementTurnTracker(1);
+            encounterCharacterSelected = false;
 
-            if (currentEncounter.GetEncounterType() == "Enemy" || currentEncounter.GetEncounterType() == "Unlockable")
+            if (currentEncounter.GetEncounterType() == "Enemy")
             {
                 currentEncounter.gameObject.SetActive(false);
+                inEnemyEncounter = false;
+            }
+            else if(currentEncounter.GetEncounterType() == "Unlockable")
+            {
+                currentEncounter.gameObject.SetActive(false);
+                inUnlockableEncounter = false;
             }
             else if (currentEncounter.GetEncounterType() == "Item")
             {
                 firstItem.gameObject.SetActive(false);
                 secondItem.gameObject.SetActive(false);
+                inItemEncounter = false;
+                encounterItemSelected = false;
+                hasConfirmedItem = false;
             }
 
             if (outOfTurns == false)
             {
                 uiManager.UpdateInstructionText("Draw an Encounter");
-                UpdateButtons();
             }
             else
             {
                 Invoke(nameof(DisplayBoss), .5f);
             }
         }
+
+        UpdateButtons();
 
     }
 
@@ -428,7 +495,7 @@ public class CardManager : MonoBehaviour
                     string resultAction = (isWin == true ? currentEncounter.GetWinAction() : currentEncounter.GetLossAction());
                     resultDescription = HandleEnemyEncounterAction(resultAction, isWin);
                 }
-                else if(inUnlockableStealthEncounter)
+                else if(inUnlockableEncounter)
                 {
                     resultDescription = HandleUnlockableEncounterAction(isWin, false);
                 }
@@ -475,6 +542,8 @@ public class CardManager : MonoBehaviour
         string resultDescription = HandleItemEncounterAction(currentEncounter.GetWinAction());
         DisplayEncounterResult(resultDescription);
 
+        hasConfirmedItem = true;
+
         if(currentEncounter == firstItem)
         {
             firstItem.transform.position = encounterCardPosition.position;
@@ -486,8 +555,6 @@ public class CardManager : MonoBehaviour
             firstItem.gameObject.SetActive(false);
         }
 
-        inItemEncounter = false;
-        encounterItemSelected = false;
         UpdateButtons();
         Invoke(nameof(EndEncounter), 2.0f);
     }
@@ -676,6 +743,7 @@ public class CardManager : MonoBehaviour
             {
                 card.confirmedInTeam = true;
             }
+            uiManager.CanConfirmTeam(false);
             Invoke(nameof(MoveAllToTeamPositions), .5f);
             Invoke(nameof(DisplayBoard), .75f);
         }
@@ -739,7 +807,7 @@ public class CardManager : MonoBehaviour
     /// <param name="characterCard">The card that was clicked</param>
     public void SetCurrentCharacter(CharacterCard characterCard)
     {
-        if ((inEnemyEncounter || inUnlockableStealthEncounter || inBossEncounter) && !encounterCharacterSelected)
+        if ((inEnemyEncounter || inUnlockableEncounter || inBossEncounter) && !encounterCharacterSelected)
         {
             currentCharacter = characterCard;
             characterCard.SelectCard();
@@ -765,7 +833,7 @@ public class CardManager : MonoBehaviour
     /// <param name="characterCard"></param>
     public void UnsetCurrentCharacter(CharacterCard characterCard)
     {
-        if ((inEnemyEncounter || inUnlockableStealthEncounter || inBossEncounter) && encounterCharacterSelected)
+        if ((inEnemyEncounter || inUnlockableEncounter || inBossEncounter) && encounterCharacterSelected)
         {
             currentCharacter = characterCard;
             characterCard.UnselectCard();
