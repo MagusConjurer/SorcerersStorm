@@ -13,6 +13,8 @@ public class UIManager : MonoBehaviour
     private GameObject SettingsMenu;
     private Dropdown resDropdown;
     private Toggle fsToggle;
+    private Toggle nextTurnToggle;
+    private bool nextTurnButtonEnabled;
     private bool reloadComplete = true;
 
     /// Game Scene
@@ -32,6 +34,7 @@ public class UIManager : MonoBehaviour
     private Button encounterButton;
     private Button rollButton;
     private Button confirmItemButton;
+    private Button nextTurnButton;
     private Text instructionText;
 
     /// Boss
@@ -169,12 +172,51 @@ public class UIManager : MonoBehaviour
         {
             resDropdown = GameObject.Find("ResolutionDropdown").GetComponent<Dropdown>();
             fsToggle = GameObject.Find("FullScreenToggle").GetComponent<Toggle>();
+            nextTurnToggle = GameObject.Find("NextTurnToggle").GetComponent<Toggle>();
 
             resDropdown.onValueChanged.AddListener(delegate { graphicsManager.SetResolution(resDropdown); });
             fsToggle.onValueChanged.AddListener(delegate { graphicsManager.SetFullscreen(fsToggle); });
+            nextTurnToggle.onValueChanged.AddListener(delegate { SetNextTurnButtonEnabled(nextTurnToggle); });
 
             graphicsManager.SetResolution(resDropdown);
+            SetNextTurnButtonEnabled(nextTurnToggle);
         }
+    }
+
+    /// <summary>
+    /// Updates the NextTurnButtonEnabled variable based on the status of the settings menu toggle
+    /// </summary>
+    /// <param name="ntToggle"></param>
+    private void SetNextTurnButtonEnabled(Toggle ntToggle)
+    {
+        nextTurnButtonEnabled = ntToggle.isOn;
+    }
+
+    /// <summary>
+    /// Used by the card manager to see whether the next turn button should be used.
+    /// </summary>
+    /// <returns>True if enabled</returns>
+    public bool NextTurnButtonIsEnabled()
+    {
+        return nextTurnButtonEnabled;
+    }
+
+    /// <summary>
+    /// Used to make the Next Turn button visible
+    /// </summary>
+    public void DisplayNextTurnButton(bool shouldDisplay)
+    {
+        nextTurnButton.gameObject.SetActive(shouldDisplay);
+        CanClickNextTurn(shouldDisplay);
+    }
+
+    /// <summary>
+    /// Used to enable the Next Turn button
+    /// </summary>
+    /// <param name="allowed"></param>
+    public void CanClickNextTurn(bool allowed)
+    {
+        nextTurnButton.enabled = allowed;
     }
 
     private void OnEnable()
@@ -265,6 +307,13 @@ public class UIManager : MonoBehaviour
                 button.enabled = false;
                 confirmItemButton.gameObject.SetActive(false);
             }
+            else if (button.name == "NextTurnButton")
+            {
+                nextTurnButton = button;
+                button.onClick.AddListener(delegate { DisplayNextTurnButton(false); cardManager.EndEncounterDelayed(); });
+                button.enabled = false;
+                nextTurnButton.gameObject.SetActive(false);
+            }
         }
 
         Button[] bossButtons = bossPanel.GetComponentsInChildren<Button>();
@@ -347,6 +396,7 @@ public class UIManager : MonoBehaviour
             bossText.text = $"BOSS: {bossName}";
 
             SetAtBoss(true);
+            nextTurnButton.transform.SetParent(bossPanel.transform, true);
         }
         catch
         {
