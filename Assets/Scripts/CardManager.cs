@@ -420,23 +420,23 @@ public class CardManager : MonoBehaviour
         {
             MoveToTeamPosition(currentCharacter);
             currentCharacter.UnselectCard();
+            encounterCharacterSelected = false;
         }
 
-        if (bossAlive && outOfTurns)
+        if (outOfTurns)
         {
             bossAlive = uiManager.GetBossHealth() > 0;
             currentEncounter.gameObject.SetActive(false);
-
-            uiManager.UpdateInstructionText("Draw an Encounter");
-        }
-        else if(!bossAlive && outOfTurns)
-        {
             inBossEncounter = false;
+
+            if(bossAlive)
+            {
+                uiManager.UpdateInstructionText("Draw an Encounter");
+            }
         }
         else
         {
             IncrementTurnTracker(1);
-            encounterCharacterSelected = false;
 
             if (currentEncounter.GetEncounterType() == "Enemy")
             {
