@@ -22,6 +22,7 @@ public class CardManager : MonoBehaviour
 
     // Encounters
     private bool outOfTurns;
+    private bool gameIsOver;
     private bool inEnemyEncounter;
     private bool inItemEncounter;
     private bool hasConfirmedItem;
@@ -67,6 +68,7 @@ public class CardManager : MonoBehaviour
     private void InitialGameLoad()
     {
         outOfTurns = false;
+        gameIsOver = false;
         encounterCharacterSelected = false;
         LoadCharacterCards();
         LoadEncounters();
@@ -214,6 +216,7 @@ public class CardManager : MonoBehaviour
     private void UpdateButtons()
     {
         bool playerAlive = characterCount > 0;
+        bossAlive = uiManager.GetBossHealth() > 0;
 
         if (playerAlive && outOfTurns)
         {
@@ -283,7 +286,6 @@ public class CardManager : MonoBehaviour
             {
                 uiManager.EnableBossEncounterButton(false);
                 uiManager.EnableBossRollButton(false);
-                uiManager.EnableBossMainMenuButton(true);
 
                 EndGame(characterCount > 0);
             }
@@ -397,7 +399,7 @@ public class CardManager : MonoBehaviour
                 {
                     uiManager.UpdateKeyCountText(-1);
                     uiManager.UpdateInstructionText(HandleUnlockableEncounterAction(true, true));
-                    Invoke(nameof(EndEncounter), 2.0f);
+                    Invoke(nameof(HandleNextTurn), 1.0f);
                 }
                 else
                 {
@@ -412,7 +414,7 @@ public class CardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Removes the currentEncounter card from the board
+    /// Removes the currentEncounter card from the board and updates the text/buttons
     /// </summary>
     private void EndEncounter()
     {
@@ -420,23 +422,22 @@ public class CardManager : MonoBehaviour
         {
             MoveToTeamPosition(currentCharacter);
             currentCharacter.UnselectCard();
+            encounterCharacterSelected = false;
         }
 
-        if (bossAlive && outOfTurns)
+        if (outOfTurns)
         {
-            bossAlive = uiManager.GetBossHealth() > 0;
             currentEncounter.gameObject.SetActive(false);
-
-            uiManager.UpdateInstructionText("Draw an Encounter");
-        }
-        else if(!bossAlive && outOfTurns)
-        {
             inBossEncounter = false;
+
+            if(bossAlive)
+            {
+                uiManager.UpdateInstructionText("Draw an Encounter");
+            }
         }
         else
         {
             IncrementTurnTracker(1);
-            encounterCharacterSelected = false;
 
             if (currentEncounter.GetEncounterType() == "Enemy")
             {
@@ -469,6 +470,13 @@ public class CardManager : MonoBehaviour
 
         UpdateButtons();
 
+    }
+    /// <summary>
+    /// Helper method to call End Encounter with a delay
+    /// </summary>
+    public void EndEncounterDelayed()
+    {
+        Invoke(nameof(EndEncounter), 1.0f);
     }
 
     /// <summary>
@@ -504,7 +512,30 @@ public class CardManager : MonoBehaviour
             }
             
             UpdateButtons();
-            Invoke(nameof(EndEncounter), 2.0f);
+            Invoke(nameof(HandleNextTurn), 1.0f);
+        }
+    }
+
+    /// <summary>
+    /// Based on the setting, either display the next turn button or proceed to the next turn automatically
+    /// </summary>
+    private void HandleNextTurn()
+    {
+        if (gameIsOver)
+        {
+            EndEncounter();
+            uiManager.EnableBossMainMenuButton(true);
+        }
+        else
+        {
+            if(uiManager.NextTurnButtonIsEnabled())
+            {
+                uiManager.DisplayNextTurnButton(true);
+            }
+            else
+            {
+                EndEncounterDelayed();
+            }
         }
     }
 
@@ -556,7 +587,7 @@ public class CardManager : MonoBehaviour
         }
 
         UpdateButtons();
-        Invoke(nameof(EndEncounter), 2.0f);
+        Invoke(nameof(HandleNextTurn), 1.0f);
     }
 
     /// <summary>
@@ -833,7 +864,7 @@ public class CardManager : MonoBehaviour
     /// <param name="characterCard"></param>
     public void UnsetCurrentCharacter(CharacterCard characterCard)
     {
-        if ((inEnemyEncounter || inUnlockableEncounter || inBossEncounter) && encounterCharacterSelected)
+        if ((inEnemyEncounter || inUnlockableEncounter || inBossEncounter) && encounterCharacterSelected && !hasRolled)
         {
             currentCharacter = characterCard;
             characterCard.UnselectCard();
@@ -842,7 +873,7 @@ public class CardManager : MonoBehaviour
             uiManager.UpdateInstructionText("Choose a Character");
             UpdateButtons();
         }
-        else if (inItemEncounter && encounterItemSelected && encounterCharacterSelected)
+        else if (inItemEncounter && encounterItemSelected && encounterCharacterSelected && !hasConfirmedItem)
         {
             currentCharacter = characterCard;
             characterCard.UnselectCard();
@@ -955,5 +986,7 @@ public class CardManager : MonoBehaviour
         {
             DisplayEncounterResult("You have been defeated!");
         }
+
+        gameIsOver = true;
     }
 }
