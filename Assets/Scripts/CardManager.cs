@@ -18,10 +18,10 @@ public class CardManager : MonoBehaviour
     private bool gameLoaded;
     private bool[] availableCharacterTeamPositions;
     private bool fullTeamSelected;
-    private int characterCount;
+    private int teamCount;
 
     // Encounters
-    private bool outOfTurns;
+    private bool reachedTheBoss;
     private bool gameIsOver;
     private bool inEnemyEncounter;
     private bool inItemEncounter;
@@ -67,7 +67,7 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void InitialGameLoad()
     {
-        outOfTurns = false;
+        reachedTheBoss = false;
         gameIsOver = false;
         encounterCharacterSelected = false;
         LoadCharacterCards();
@@ -115,6 +115,7 @@ public class CardManager : MonoBehaviour
         }
 
         characterSelectedDeck = new List<CharacterCard>();
+        teamCount = 0;
         fullTeamSelected = false;
     }
 
@@ -215,22 +216,13 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void UpdateButtons()
     {
-        bool playerAlive = characterCount > 0;
-        bossAlive = uiManager.GetBossHealth() > 0;
-
-        if (playerAlive && outOfTurns)
+        if ((TeamAlive() || bossAlive) && reachedTheBoss)
         {
             UpdateBossButtons();
-        }
-        else if((!playerAlive) && outOfTurns)
-        {
-            UpdateBossButtons();
- 
-            EndGame(playerAlive);
         }
         else
         {
-            UpdateEncounterButtons();
+            UpdateEncounterButtons(); 
         }
     }
     /// <summary>
@@ -239,7 +231,7 @@ public class CardManager : MonoBehaviour
     private void UpdateEnemyButtons()
     {
         uiManager.EnableDrawEncounterButton(!inEnemyEncounter && 
-                                            !outOfTurns);
+                                            !reachedTheBoss);
         uiManager.EnableRollButton(inEnemyEncounter && 
                                    encounterCharacterSelected && 
                                    !hasRolled);
@@ -250,7 +242,7 @@ public class CardManager : MonoBehaviour
     private void UpdateUnlockableButtons()
     {
         uiManager.EnableDrawEncounterButton(!inUnlockableEncounter && 
-                                            !outOfTurns);
+                                            !reachedTheBoss);
         uiManager.EnableRollButton(inUnlockableEncounter && 
                                    encounterCharacterSelected && 
                                    !hasRolled);
@@ -261,7 +253,7 @@ public class CardManager : MonoBehaviour
     private void UpdateItemButtons()
     {
         uiManager.EnableDrawEncounterButton(!inItemEncounter && 
-                                            !outOfTurns);
+                                            !reachedTheBoss);
         uiManager.EnableItemConfirmButton(inItemEncounter && 
                                           encounterItemSelected && 
                                           encounterCharacterSelected && 
@@ -272,9 +264,10 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void UpdateBossButtons()
     {
-        if (outOfTurns)
+        bossAlive = uiManager.GetBossHealth() > 0;
+        if (reachedTheBoss)
         {
-            if (bossAlive)
+            if (bossAlive && TeamAlive())
             {
                 uiManager.EnableBossEncounterButton(!inBossEncounter);
                 uiManager.EnableBossRollButton(inBossEncounter && 
@@ -287,7 +280,7 @@ public class CardManager : MonoBehaviour
                 uiManager.EnableBossEncounterButton(false);
                 uiManager.EnableBossRollButton(false);
 
-                EndGame(characterCount > 0);
+                EndGame(TeamAlive());
             }
         }
     }
@@ -319,7 +312,7 @@ public class CardManager : MonoBehaviour
     /// <param name="amount"></param>
     private void IncrementTurnTracker(int amount)
     {
-        outOfTurns = uiManager.IncrementTurnTracker(amount);
+        reachedTheBoss = uiManager.IncrementTurnTracker(amount);
     }
 
     /// <summary>
@@ -346,7 +339,7 @@ public class CardManager : MonoBehaviour
     /// </summary>
     public void DrawEncounter()
     {
-        if(outOfTurns == false)
+        if(reachedTheBoss == false)
         {
             if (encounterDeck.Count == 0)
             {
@@ -425,7 +418,7 @@ public class CardManager : MonoBehaviour
             encounterCharacterSelected = false;
         }
 
-        if (outOfTurns)
+        if (reachedTheBoss)
         {
             currentEncounter.gameObject.SetActive(false);
             inBossEncounter = false;
@@ -458,7 +451,7 @@ public class CardManager : MonoBehaviour
                 hasConfirmedItem = false;
             }
 
-            if (outOfTurns == false)
+            if (reachedTheBoss == false)
             {
                 uiManager.UpdateInstructionText("Draw an Encounter");
             }
@@ -734,8 +727,8 @@ public class CardManager : MonoBehaviour
             characterSelectedDeck.Add(characterCard);
             characterCard.inTeam = true;
             characterCard.SelectCard();
-            characterCount++;
-            if (characterCount == 4)
+            IncreaseTeamCount();
+            if (teamCount == 4)
             {
                 fullTeamSelected = true;
                 uiManager.CanConfirmTeam(true);
@@ -754,8 +747,8 @@ public class CardManager : MonoBehaviour
             characterSelectedDeck.Remove(characterCard);
             characterCard.inTeam = false;
             characterCard.UnselectCard();
-            characterCount--;
-            if(characterCount < 4)
+            DecreaseTeamCount();
+            if (teamCount < 4)
             {
                 fullTeamSelected = false;
                 uiManager.CanConfirmTeam(false);
@@ -768,7 +761,7 @@ public class CardManager : MonoBehaviour
     /// </summary>
     public void ConfirmTeam()
     {
-        if(characterCount == 4)
+        if (teamCount == 4)
         {
             foreach(CharacterCard card in characterSelectedDeck)
             {
@@ -778,6 +771,32 @@ public class CardManager : MonoBehaviour
             Invoke(nameof(MoveAllToTeamPositions), .5f);
             Invoke(nameof(DisplayBoard), .75f);
         }
+    }
+
+    /// <summary>
+    /// Helper method for checking whether at least one team member is alive
+    /// </summary>
+    /// <returns>False if all team members are dead</returns>
+    public bool TeamAlive()
+    {
+        return teamCount > 0;
+    }
+
+    /// <summary>
+    /// Used to decrease the count when a character dies. Also called by the CharacterCard class .
+    /// </summary>
+    public void DecreaseTeamCount()
+    {
+        teamCount--;
+    }
+
+    /// <summary>
+    /// Used to increase the count when a player joins the team. Currently only used in AddToTeam.
+    /// Could be used if players could find new team members along the way.
+    /// </summary>
+    public void IncreaseTeamCount()
+    {
+        teamCount++;
     }
 
     /// <summary>
@@ -883,21 +902,13 @@ public class CardManager : MonoBehaviour
             UpdateButtons();
         }
     }
-    
-    /// <summary>
-    /// Used by the CharacterCard class to decrease the count when a character dies
-    /// </summary>
-    public void DecreasePlayerCount()
-    {
-        characterCount--;
-    }
 
     /// <summary>
     /// If the boss still has health, pull a random card out of the boss encounter deck and display it.
     /// </summary>
     public void DrawBossEncounter()
     {
-        if (outOfTurns && bossAlive)
+        if (reachedTheBoss && bossAlive)
         {
             if (bossEncounterDeck.Count == 0)
             {
