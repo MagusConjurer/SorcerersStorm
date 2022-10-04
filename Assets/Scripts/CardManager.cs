@@ -18,7 +18,7 @@ public class CardManager : MonoBehaviour
     private bool gameLoaded;
     private bool[] availableCharacterTeamPositions;
     private bool fullTeamSelected;
-    private int characterCount;
+    private int teamCount;
 
     // Encounters
     private bool reachedTheBoss;
@@ -115,6 +115,7 @@ public class CardManager : MonoBehaviour
         }
 
         characterSelectedDeck = new List<CharacterCard>();
+        teamCount = 0;
         fullTeamSelected = false;
     }
 
@@ -215,13 +216,9 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void UpdateButtons()
     {
-        // Only if player is alive and has not reached the boss, but then only updates boss buttons if boss is alive
-        if (characterCount > 0 && reachedTheBoss)
+        if ((TeamAlive() || bossAlive) && reachedTheBoss)
         {
-            if (bossAlive)
-            {
-                UpdateBossButtons(); 
-            }
+            UpdateBossButtons();
         }
         else
         {
@@ -267,10 +264,10 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void UpdateBossButtons()
     {
+        bossAlive = uiManager.GetBossHealth() > 0;
         if (reachedTheBoss)
         {
-            bool playerAlive = characterCount > 0;
-            if (bossAlive && playerAlive)
+            if (bossAlive && TeamAlive())
             {
                 uiManager.EnableBossEncounterButton(!inBossEncounter);
                 uiManager.EnableBossRollButton(inBossEncounter && 
@@ -283,7 +280,7 @@ public class CardManager : MonoBehaviour
                 uiManager.EnableBossEncounterButton(false);
                 uiManager.EnableBossRollButton(false);
 
-                EndGame(playerAlive);
+                EndGame(TeamAlive());
             }
         }
     }
@@ -730,8 +727,8 @@ public class CardManager : MonoBehaviour
             characterSelectedDeck.Add(characterCard);
             characterCard.inTeam = true;
             characterCard.SelectCard();
-            characterCount++;
-            if (characterCount == 4)
+            IncreaseTeamCount();
+            if (teamCount == 4)
             {
                 fullTeamSelected = true;
                 uiManager.CanConfirmTeam(true);
@@ -750,8 +747,8 @@ public class CardManager : MonoBehaviour
             characterSelectedDeck.Remove(characterCard);
             characterCard.inTeam = false;
             characterCard.UnselectCard();
-            characterCount--;
-            if (characterCount < 4)
+            DecreaseTeamCount();
+            if (teamCount < 4)
             {
                 fullTeamSelected = false;
                 uiManager.CanConfirmTeam(false);
@@ -764,7 +761,7 @@ public class CardManager : MonoBehaviour
     /// </summary>
     public void ConfirmTeam()
     {
-        if (characterCount == 4)
+        if (teamCount == 4)
         {
             foreach(CharacterCard card in characterSelectedDeck)
             {
@@ -774,6 +771,32 @@ public class CardManager : MonoBehaviour
             Invoke(nameof(MoveAllToTeamPositions), .5f);
             Invoke(nameof(DisplayBoard), .75f);
         }
+    }
+
+    /// <summary>
+    /// Helper method for checking whether at least one team member is alive
+    /// </summary>
+    /// <returns>False if all team members are dead</returns>
+    public bool TeamAlive()
+    {
+        return teamCount > 0;
+    }
+
+    /// <summary>
+    /// Used to decrease the count when a character dies. Also called by the CharacterCard class .
+    /// </summary>
+    public void DecreaseTeamCount()
+    {
+        teamCount--;
+    }
+
+    /// <summary>
+    /// Used to increase the count when a player joins the team. Currently only used in AddToTeam.
+    /// Could be used if players could find new team members along the way.
+    /// </summary>
+    public void IncreaseTeamCount()
+    {
+        teamCount++;
     }
 
     /// <summary>
@@ -878,14 +901,6 @@ public class CardManager : MonoBehaviour
             uiManager.UpdateInstructionText("Choose a Character");
             UpdateButtons();
         }
-    }
-    
-    /// <summary>
-    /// Used by the CharacterCard class to decrease the count when a character dies
-    /// </summary>
-    public void DecreasePlayerCount()
-    {
-        characterCount--;
     }
 
     /// <summary>
