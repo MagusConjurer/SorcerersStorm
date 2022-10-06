@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 public class CardManager : MonoBehaviour
 {
     UIManager uiManager;
+    GameManager gameManager;
 
     // Character Cards
     private List<Transform> characterRosterPositions;
@@ -41,14 +42,15 @@ public class CardManager : MonoBehaviour
     private Transform secondItemCardPosition;
 
     // Boss
-    Boss sorcererBoss;
+    Boss currentBoss;
     private List<BossEncounter> bossEncounterDeck;
     private List<BossEncounter> bossEncounterDiscardDeck;
 
     // Start is called before the first frame update
     void Start()
     {
-        uiManager = GameObject.Find("GameManager").GetComponent<UIManager>();
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        uiManager = gameManager.GetComponentInParent<UIManager>();
     }
 
     // Update is called once per frame
@@ -155,7 +157,7 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void LoadBossEncounters()
     {
-        sorcererBoss = new Boss("The Sorcerer", 5);
+        currentBoss = gameManager.GetCurrentBoss();
 
         bossEncounterDeck = new List<BossEncounter>();
         bossEncounterDiscardDeck = new List<BossEncounter>();
@@ -170,10 +172,9 @@ public class CardManager : MonoBehaviour
     /// <summary>
     /// Take all of the cards in the discard list and add them back into the main deck.
     /// </summary>
-    /// <param name="atBoss">Whether to reshuffle the regular or boss encounters</param>
-    private void ShuffleEncounterCards(bool atBoss)
+    private void ShuffleEncounterCards()
     {
-        if(atBoss)
+        if(currentBoss.IsOnTheBoard())
         {
             for(int i = bossEncounterDiscardDeck.Count - 1; i > 0; i--)
             {
@@ -213,8 +214,8 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void DisplayBoss()
     {
-        sorcererBoss.Activate();
-        uiManager.DisplayBossPanel(sorcererBoss);
+        currentBoss.Activate();
+        uiManager.DisplayBossPanel(currentBoss);
         UpdateButtons();
     }
 
@@ -223,7 +224,7 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void UpdateButtons()
     {
-        if ((TeamAlive() || sorcererBoss.IsAlive()) && sorcererBoss.IsOnTheBoard())
+        if ((TeamAlive() || currentBoss.IsAlive()) && currentBoss.IsOnTheBoard())
         {
             UpdateBossButtons();
         }
@@ -238,7 +239,7 @@ public class CardManager : MonoBehaviour
     private void UpdateEnemyButtons()
     {
         uiManager.EnableDrawEncounterButton(!inEnemyEncounter && 
-                                            !sorcererBoss.IsOnTheBoard());
+                                            !currentBoss.IsOnTheBoard());
         uiManager.EnableRollButton(inEnemyEncounter && 
                                    encounterCharacterSelected && 
                                    !hasRolled);
@@ -249,7 +250,7 @@ public class CardManager : MonoBehaviour
     private void UpdateUnlockableButtons()
     {
         uiManager.EnableDrawEncounterButton(!inUnlockableEncounter && 
-                                            !sorcererBoss.IsOnTheBoard());
+                                            !currentBoss.IsOnTheBoard());
         uiManager.EnableRollButton(inUnlockableEncounter && 
                                    encounterCharacterSelected && 
                                    !hasRolled);
@@ -260,7 +261,7 @@ public class CardManager : MonoBehaviour
     private void UpdateItemButtons()
     {
         uiManager.EnableDrawEncounterButton(!inItemEncounter && 
-                                            !sorcererBoss.IsOnTheBoard());
+                                            !currentBoss.IsOnTheBoard());
         uiManager.EnableItemConfirmButton(inItemEncounter && 
                                           encounterItemSelected && 
                                           encounterCharacterSelected && 
@@ -271,9 +272,9 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void UpdateBossButtons()
     {
-        if (sorcererBoss.IsOnTheBoard())
+        if (currentBoss.IsOnTheBoard())
         {
-            if (sorcererBoss.IsAlive() && TeamAlive())
+            if (currentBoss.IsAlive() && TeamAlive())
             {
                 uiManager.EnableBossEncounterButton(!inBossEncounter);
                 uiManager.EnableBossRollButton(inBossEncounter && 
@@ -321,7 +322,7 @@ public class CardManager : MonoBehaviour
         bool reachedTheBoss = uiManager.IncrementTurnTracker(10);
         if(reachedTheBoss)
         {
-            sorcererBoss.Activate();
+            currentBoss.Activate();
         }
     }
 
@@ -333,9 +334,9 @@ public class CardManager : MonoBehaviour
     private void DisplayEncounterResult(int rollValue, string description)
     {
         string instruction = $"You rolled a {rollValue} and {description}";
-        if (sorcererBoss.IsOnTheBoard())
+        if (currentBoss.IsOnTheBoard())
         {
-            uiManager.UpdateBossInstructionText(instruction, sorcererBoss);
+            uiManager.UpdateBossInstructionText(instruction, currentBoss);
         }
         else
         {
@@ -348,9 +349,9 @@ public class CardManager : MonoBehaviour
     /// <param name="description">Result of the action</param>
     private void DisplayEncounterResult(string description)
     {
-        if (sorcererBoss.IsOnTheBoard())
+        if (currentBoss.IsOnTheBoard())
         {
-            uiManager.UpdateBossInstructionText(description, sorcererBoss);
+            uiManager.UpdateBossInstructionText(description, currentBoss);
         }
         else
         {
@@ -364,11 +365,11 @@ public class CardManager : MonoBehaviour
     /// </summary>
     public void DrawEncounter()
     {
-        if(sorcererBoss.IsOnTheBoard() == false)
+        if(currentBoss.IsOnTheBoard() == false)
         {
             if (encounterDeck.Count == 0)
             {
-                ShuffleEncounterCards(false);
+                ShuffleEncounterCards();
             }
             else
             {
@@ -443,14 +444,14 @@ public class CardManager : MonoBehaviour
             encounterCharacterSelected = false;
         }
 
-        if (sorcererBoss.IsOnTheBoard())
+        if (currentBoss.IsOnTheBoard())
         {
             currentEncounter.gameObject.SetActive(false);
             inBossEncounter = false;
 
-            if(sorcererBoss.IsAlive() && TeamAlive())
+            if(currentBoss.IsAlive() && TeamAlive())
             {
-                uiManager.UpdateBossInstructionText("Draw an Encounter", sorcererBoss);
+                uiManager.UpdateBossInstructionText("Draw an Encounter", currentBoss);
             }
         }
         else
@@ -476,7 +477,7 @@ public class CardManager : MonoBehaviour
                 hasConfirmedItem = false;
             }
 
-            if (sorcererBoss.IsOnTheBoard() == false)
+            if (currentBoss.IsOnTheBoard() == false)
             {
                 uiManager.UpdateInstructionText("Draw an Encounter");
             }
@@ -892,9 +893,9 @@ public class CardManager : MonoBehaviour
             characterCard.SelectCard();
             encounterCharacterSelected = true;
             MoveToEncounterPosition(currentCharacter);
-            if (sorcererBoss.IsOnTheBoard())
+            if (currentBoss.IsOnTheBoard())
             {
-                uiManager.UpdateBossInstructionText(instruction, sorcererBoss);
+                uiManager.UpdateBossInstructionText(instruction, currentBoss);
             }
             else
             {
@@ -927,9 +928,9 @@ public class CardManager : MonoBehaviour
             characterCard.UnselectCard();
             encounterCharacterSelected = false;
             MoveToTeamPosition(currentCharacter);
-            if (sorcererBoss.IsOnTheBoard())
+            if (currentBoss.IsOnTheBoard())
             {
-                uiManager.UpdateBossInstructionText(instruction, sorcererBoss);
+                uiManager.UpdateBossInstructionText(instruction, currentBoss);
             }
             else
             {
@@ -954,11 +955,11 @@ public class CardManager : MonoBehaviour
     /// </summary>
     public void DrawBossEncounter()
     {
-        if (sorcererBoss.IsOnTheBoard() && sorcererBoss.IsAlive())
+        if (currentBoss.IsOnTheBoard() && currentBoss.IsAlive())
         {
             if (bossEncounterDeck.Count == 0)
             {
-                ShuffleEncounterCards(true);
+                ShuffleEncounterCards();
             }
 
             int randIndex = Random.Range(0, bossEncounterDeck.Count);
@@ -971,7 +972,7 @@ public class CardManager : MonoBehaviour
 
             inBossEncounter = true;
             hasRolled = false;
-            uiManager.UpdateBossInstructionText("Choose a Character", sorcererBoss);
+            uiManager.UpdateBossInstructionText("Choose a Character", currentBoss);
         }
 
         UpdateButtons();
@@ -991,13 +992,13 @@ public class CardManager : MonoBehaviour
         if (isWin)
         {
             actionType = bossEncounter.GetWinAction();
-            uiManager.UpdateBossHealthbar(1, sorcererBoss);
+            uiManager.UpdateBossHealthbar(1, currentBoss);
             resultDescription += "did 1 damage to the boss,";
         }
         else if (isBigWin)
         {
             actionType = bossEncounter.GetBigWinAction();
-            uiManager.UpdateBossHealthbar(2, sorcererBoss);
+            uiManager.UpdateBossHealthbar(2, currentBoss);
             resultDescription += "did 2 damage to the boss,";
         }
         else
