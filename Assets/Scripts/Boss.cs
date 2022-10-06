@@ -4,14 +4,20 @@ using UnityEngine;
 
 public class Boss
 {
-    private int startingHealth = 5;
+    private int startingHealth;
     private bool onTheBoard;
     private int currentHealth;
     private string bossName;
-    public Boss(string name)
+    /// <summary>
+    /// Contains the data for a boss
+    /// </summary>
+    /// <param name="name">Title to display on the boss panel</param>
+    /// <param name="health">Starting health of the boss</param>
+    public Boss(string name, int health)
     {
         onTheBoard = false;
         bossName = name;
+        startingHealth = health;
     }
     public string GetBossName()
     {

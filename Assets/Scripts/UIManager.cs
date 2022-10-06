@@ -264,7 +264,7 @@ public class UIManager : MonoBehaviour
         confirmTeamButton = GameObject.Find("ConfirmTeamButton").GetComponent<Button>();
         confirmTeamButton.onClick.RemoveAllListeners();
         confirmTeamButton.onClick.AddListener(cardManager.ConfirmTeam);
-        confirmTeamButton.enabled = false;
+        CanConfirmTeam(false);
 
         turnTracker = boardPanel.GetComponentInChildren<Slider>();
 
@@ -406,13 +406,9 @@ public class UIManager : MonoBehaviour
         confirmTeamButton.gameObject.SetActive(status);
         confirmTeamButton.enabled = status;
 
-        if(status == true)
+        if(status)
         {
-            rosterText.text = "Confirm or Change Your Selection";
-        }
-        else
-        {
-            rosterText.text = "Select Your Four Characters";
+            UpdateRosterText("Confirm or Change Your Selection");
         }
     }
 
@@ -484,6 +480,11 @@ public class UIManager : MonoBehaviour
             turnTracker.value = turnTracker.maxValue;
             return true;
         }
+    }
+
+    public void UpdateRosterText(string newText)
+    {
+        rosterText.text = newText;
     }
 
     /// <summary>
