@@ -44,9 +44,7 @@ public class UIManager : MonoBehaviour
     private Button bossRollButton;
     private Button mainMenuButton;
     private Text bossInstructionText;
-    private bool atBoss;
-    private int currentBossHealth;
-    private string bossName = "The Sorcerer";
+//    private bool atBoss;
 
     /// Colors
     private Color sorcererPurple;
@@ -275,10 +273,8 @@ public class UIManager : MonoBehaviour
         keyCountText = GameObject.Find("KeyCountText").GetComponent<Text>();
         currentKeyCount = 0;
 
-        SetAtBoss(false);
         bossInstructionText = GameObject.Find("BossInstructionText").GetComponent<Text>();
         bossHealthBar = GameObject.Find("BossHealthBar").GetComponentsInChildren<Image>();
-        currentBossHealth = 5;
         foreach(Image bar in bossHealthBar)
         {
             bar.color = sorcererPurple;
@@ -351,8 +347,6 @@ public class UIManager : MonoBehaviour
             rosterPanel.SetActive(true);
             boardPanel.SetActive(false);
             bossPanel.SetActive(false);
-
-            SetAtBoss(false);
         }
         catch
         {
@@ -371,8 +365,6 @@ public class UIManager : MonoBehaviour
             rosterPanel.SetActive(false);
             boardPanel.SetActive(true);
             bossPanel.SetActive(false);
-
-            SetAtBoss(false);
         }
         catch
         {
@@ -384,7 +376,7 @@ public class UIManager : MonoBehaviour
     /// <summary>
     /// Makes only the Boss panel active and sets the boss title text
     /// </summary>
-    public void DisplayBossPanel()
+    public void DisplayBossPanel(Boss boss)
     {
         try
         {
@@ -393,15 +385,15 @@ public class UIManager : MonoBehaviour
             bossPanel.SetActive(true);
 
             Text bossText = GameObject.Find("BossTitleText").GetComponent<Text>();
-            bossText.text = $"BOSS: {bossName}";
+            bossText.text = $"BOSS: {boss.GetBossName()}";
 
-            SetAtBoss(true);
+            boss.Activate();
             nextTurnButton.transform.SetParent(bossPanel.transform, true);
         }
         catch
         {
             LoadGamePanels();
-            DisplayBossPanel();
+            DisplayBossPanel(boss);
         }
     }
 
@@ -499,13 +491,18 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void UpdateInstructionText(string newText)
     {
-        if(atBoss)
+        instructionText.text = newText;
+    }
+
+    /// <summary>
+    /// Used to update the instruction text during boss encounters.
+    /// Only updates if the boss is currently on the board.
+    /// </summary>
+    public void UpdateBossInstructionText(string newText, Boss boss)
+    {
+        if(boss.IsOnTheBoard())
         {
             bossInstructionText.text = newText;
-        }
-        else
-        {
-            instructionText.text = newText;
         }
     }
 
@@ -527,22 +524,17 @@ public class UIManager : MonoBehaviour
         return currentKeyCount;
     }
 
-    /// <summary>
-    /// Get the current boss health value
-    /// </summary>
-    public int GetBossHealth()
-    {
-        return currentBossHealth;
-    }
+
 
     /// <summary>
-    /// Method to update the boss health bar. Ends the game if boss health reaches 0.
+    /// Method to update the boss health bar.
     /// </summary>
     /// <param name="amount">Damage to apply</param>
-    public void DecreaseBossHealth(int amount)
+    public void UpdateBossHealthbar(int amount, Boss boss)
     {
-        currentBossHealth -= amount;
-        if(currentBossHealth >= 0)
+        boss.DecreaseBossHealth(amount);
+        int currentBossHealth = boss.GetBossHealth();
+        if (currentBossHealth >= 0)
         {
             int startIndex = currentBossHealth >= 0 ? currentBossHealth : 0;
             int finalIndex = startIndex + (amount);
@@ -553,11 +545,4 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Update whether the player is at the boss stage
-    /// </summary>
-    private void SetAtBoss(bool status)
-    {
-        atBoss = status;
-    }
 }
