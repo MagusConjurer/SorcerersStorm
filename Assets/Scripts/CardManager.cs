@@ -42,7 +42,7 @@ public class CardManager : MonoBehaviour
     private Transform secondItemCardPosition;
 
     // Boss
-    Boss currentBoss;
+    private Boss currentBoss;
     private List<BossEncounter> bossEncounterDeck;
     private List<BossEncounter> bossEncounterDiscardDeck;
 
@@ -477,6 +477,7 @@ public class CardManager : MonoBehaviour
                 hasConfirmedItem = false;
             }
 
+            // This is to catch whether the boss is activated after IncrementTurnTracker is called
             if (currentBoss.IsOnTheBoard() == false)
             {
                 uiManager.UpdateInstructionText("Draw an Encounter");
@@ -491,7 +492,7 @@ public class CardManager : MonoBehaviour
 
     }
     /// <summary>
-    /// Helper method to call End Encounter with a delay
+    /// Helper method to call End Encounter with a delay when the Next Turn button is off
     /// </summary>
     public void EndEncounterDelayed()
     {
@@ -962,13 +963,7 @@ public class CardManager : MonoBehaviour
                 ShuffleEncounterCards();
             }
 
-            int randIndex = Random.Range(0, bossEncounterDeck.Count);
-            currentEncounter = bossEncounterDeck[randIndex];
-            bossEncounterDeck.RemoveAt(randIndex);
-            bossEncounterDiscardDeck.Add((BossEncounter)currentEncounter);
-
-            currentEncounter.gameObject.SetActive(true);
-            currentEncounter.transform.position = encounterCardPosition.position;
+            SetCurrentEncounterToRandomBossEncounter();
 
             inBossEncounter = true;
             hasRolled = false;
@@ -976,6 +971,20 @@ public class CardManager : MonoBehaviour
         }
 
         UpdateButtons();
+    }
+
+    /// <summary>
+    /// Handles the drawing and displaying of a random boss card
+    /// </summary>
+    private void SetCurrentEncounterToRandomBossEncounter()
+    {
+        int randIndex = Random.Range(0, bossEncounterDeck.Count);
+        currentEncounter = bossEncounterDeck[randIndex];
+        bossEncounterDeck.RemoveAt(randIndex);
+        bossEncounterDiscardDeck.Add((BossEncounter)currentEncounter);
+
+        currentEncounter.gameObject.SetActive(true);
+        currentEncounter.transform.position = encounterCardPosition.position;
     }
 
     private void HandleBossEncounterAction()
@@ -987,7 +996,7 @@ public class CardManager : MonoBehaviour
         bool isBigWin = bossEncounter.IsResultBigWin(totalRollValue);
         string resultDescription = "";
         
-        int amount = bossEncounter.GetResultAmount(isWin, isBigWin);
+        
         string actionType;
         if (isWin)
         {
@@ -1005,33 +1014,49 @@ public class CardManager : MonoBehaviour
         {
             actionType = bossEncounter.GetLossAction();
         }
-        
+
+        int changeAmount = bossEncounter.GetResultAmount(isWin, isBigWin);
+        resultDescription += GetBossEncounterStatChange(actionType, changeAmount);
+
+        DisplayEncounterResult(totalRollValue, resultDescription);
+    }
+
+    /// <summary>
+    /// Updates the currentCharacters stat based on the win/loss action of the boss encounter.
+    /// </summary>
+    /// <param name="actionType"></param>
+    /// <param name="amount">amount of stat change</param>
+    /// <returns>a description of the character stat change</returns>
+    private string GetBossEncounterStatChange(string actionType, int amount)
+    {
+        string changeInStatText = "";
+
         switch (actionType)
         {
             case "Health":
                 currentCharacter.DecreaseHealth(amount);
-                resultDescription += $"lost {amount} health.";
+                changeInStatText += $"lost {amount} health.";
                 break;
             case "Strength":
                 currentCharacter.DecreaseStrength(amount);
                 currentCharacter.DecreaseAccuracy(amount);
-                resultDescription += $" but lost {amount} strength & accuracy.";
+                changeInStatText += $" but lost {amount} strength & accuracy.";
                 break;
             case "Accuracy":
                 currentCharacter.DecreaseAccuracy(amount);
                 currentCharacter.DecreaseStealth(amount);
-                resultDescription += $" but lost {amount} accuracy & stealth.";
+                changeInStatText += $" but lost {amount} accuracy & stealth.";
                 break;
             case "Stealth":
                 currentCharacter.DecreaseStealth(amount);
                 currentCharacter.DecreaseStrength(amount);
-                resultDescription += $" but lost {amount} stealth & strength.";
+                changeInStatText += $" but lost {amount} stealth & strength.";
                 break;
             default:
                 break;
         }
 
-        DisplayEncounterResult(totalRollValue, resultDescription);
+        return changeInStatText;
     }
 
     private void EndGame(bool playerWon)

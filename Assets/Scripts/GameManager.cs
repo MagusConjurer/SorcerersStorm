@@ -5,13 +5,14 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     static private GameManager _instance;
-    private Boss[] bosses;
+    private List<Boss> bosses;
     private int level;
 
     private GameManager()
     {
         level = 1;
-        bosses[0] = new Boss("The Sorcerer", 5);
+        bosses = new List<Boss>();
+        bosses.Add(new Boss("The Sorcerer", 5));
     }
 
     public static GameManager Instance
