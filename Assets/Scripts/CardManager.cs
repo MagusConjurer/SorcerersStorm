@@ -8,18 +8,12 @@ public class CardManager : MonoBehaviour
 {
     UIManager uiManager;
     GameManager gameManager;
+    private bool gameLoaded;
 
     // Character Cards
-    private List<Transform> characterRosterPositions;
-    private List<Transform> characterTeamPositions;
-    private List<CharacterCard> characterDeck;
-    private List<CharacterCard> characterSelectedDeck;
     private CharacterCard currentCharacter;
     private bool encounterCharacterSelected;
-    private bool gameLoaded;
-    private bool[] availableCharacterTeamPositions;
-    private bool fullTeamSelected;
-    private int teamCount;
+    private Team characterTeam;
 
     // Encounters
     private bool gameIsOver;
@@ -35,7 +29,6 @@ public class CardManager : MonoBehaviour
     private List<EncounterCard> itemDeck;
     private EncounterCard currentEncounter;
     private Transform encounterCardPosition;
-    private Transform encounterCharacterPosition;
     private EncounterCard firstItem;
     private EncounterCard secondItem;
     private Transform firstItemCardPosition;
@@ -107,15 +100,8 @@ public class CardManager : MonoBehaviour
             
         }
 
-        availableCharacterTeamPositions = new bool[4];
-        for (int j = 0; j < availableCharacterTeamPositions.Length; j++)
-        {
-            availableCharacterTeamPositions[j] = true;
-        }
-
+        characterTeam = new Team();
         characterSelectedDeck = new List<CharacterCard>();
-        teamCount = 0;
-        fullTeamSelected = false;
     }
 
     /// <summary>
@@ -224,7 +210,7 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void UpdateButtons()
     {
-        if ((TeamAlive() || currentBoss.IsAlive()) && currentBoss.IsOnTheBoard())
+        if ((characterTeam.IsAlive() || currentBoss.IsAlive()) && currentBoss.IsOnTheBoard())
         {
             UpdateBossButtons();
         }
@@ -274,7 +260,7 @@ public class CardManager : MonoBehaviour
     {
         if (currentBoss.IsOnTheBoard())
         {
-            if (currentBoss.IsAlive() && TeamAlive())
+            if (currentBoss.IsAlive() && characterTeam.IsAlive())
             {
                 uiManager.EnableBossEncounterButton(!inBossEncounter);
                 uiManager.EnableBossRollButton(inBossEncounter && 
@@ -449,7 +435,7 @@ public class CardManager : MonoBehaviour
             currentEncounter.gameObject.SetActive(false);
             inBossEncounter = false;
 
-            if(currentBoss.IsAlive() && TeamAlive())
+            if(currentBoss.IsAlive() && characterTeam.IsAlive())
             {
                 uiManager.UpdateBossInstructionText("Draw an Encounter", currentBoss);
             }
@@ -548,7 +534,7 @@ public class CardManager : MonoBehaviour
         }
         else
         {
-            if(uiManager.NextTurnButtonIsEnabled())
+            if (uiManager.NextTurnButtonIsEnabled())
             {
                 uiManager.DisplayNextTurnButton(true);
             }
@@ -745,140 +731,39 @@ public class CardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when a character card is clicked on during the team selection phase
+    /// If the boss still has health, pull a random card out of the boss encounter deck and display it.
     /// </summary>
-    /// <param name="characterCard"></param>
-    public void AddToTeam(CharacterCard characterCard)
+    public void DrawBossEncounter()
     {
-        if (characterSelectedDeck.Contains(characterCard) == false && fullTeamSelected == false)
+        if (currentBoss.IsOnTheBoard() && currentBoss.IsAlive())
         {
-            characterSelectedDeck.Add(characterCard);
-            characterCard.inTeam = true;
-            characterCard.SelectCard();
-            IncreaseTeamCount();
-            if (teamCount == 4)
+            if (bossEncounterDeck.Count == 0)
             {
-                fullTeamSelected = true;
-                uiManager.CanConfirmTeam(true);
+                ShuffleEncounterCards();
             }
-        }
-    }
 
-    /// <summary>
-    /// Called when a character already on the team is clicked on during the team selection phase
-    /// </summary>
-    /// <param name="characterCard"></param>
-    public void RemoveFromTeam(CharacterCard characterCard)
-    {
-        if(characterSelectedDeck.Contains(characterCard) == true)
-        {
-            characterSelectedDeck.Remove(characterCard);
-            characterCard.inTeam = false;
-            characterCard.UnselectCard();
-            DecreaseTeamCount();
-            if (teamCount < 4)
-            {
-                fullTeamSelected = false;
-                uiManager.CanConfirmTeam(false);
-                uiManager.UpdateRosterText("Select Your Four Characters");
-            }
-        }
-    }
+            SetCurrentEncounterToRandomBossEncounter();
 
-    /// <summary>
-    /// Method called by the confirm button during the team selection phase
-    /// </summary>
-    public void ConfirmTeam()
-    {
-        if (teamCount == 4)
-        {
-            foreach(CharacterCard card in characterSelectedDeck)
-            {
-                card.confirmedInTeam = true;
-            }
-            uiManager.CanConfirmTeam(false);
-            uiManager.UpdateRosterText("");
-            Invoke(nameof(MoveAllToTeamPositions), .5f);
-            Invoke(nameof(DisplayBoard), .75f);
-        }
-    }
-
-    /// <summary>
-    /// Helper method for checking whether at least one team member is alive
-    /// </summary>
-    /// <returns>False if all team members are dead</returns>
-    public bool TeamAlive()
-    {
-        return teamCount > 0;
-    }
-
-    /// <summary>
-    /// Used to decrease the count when a character dies. Also called by the CharacterCard class .
-    /// </summary>
-    public void DecreaseTeamCount()
-    {
-        teamCount--;
-    }
-
-    /// <summary>
-    /// Used to increase the count when a player joins the team. Currently only used in AddToTeam.
-    /// Could be used if players could find new team members along the way.
-    /// </summary>
-    public void IncreaseTeamCount()
-    {
-        teamCount++;
-    }
-
-    /// <summary>
-    /// Used after all selected characters are removed from the deck to remove the rest from the board.
-    /// </summary>
-    private void HideRemainingCharacters()
-    {
-        foreach(CharacterCard card in characterDeck)
-        {
-            card.gameObject.SetActive(false);
-        }
-    }
-
-    /// <summary>
-    /// Moves the selected characters to their corresponding team positions.
-    /// </summary>
-    private void MoveAllToTeamPositions()
-    {
-        for (int i = 0; i < availableCharacterTeamPositions.Length; i++)
-        {
-            CharacterCard characterCard = characterSelectedDeck[i];
-            if (availableCharacterTeamPositions[i] == true)
-            {
-                characterCard.placedIndex = i;
-                MoveToTeamPosition(characterCard);
-                characterCard.UnselectCard();
-
-                availableCharacterTeamPositions[i] = false;
-                characterDeck.Remove(characterCard);
-            }
+            inBossEncounter = true;
+            hasRolled = false;
+            uiManager.UpdateBossInstructionText("Choose a Character", currentBoss);
         }
 
-        HideRemainingCharacters();
+        UpdateButtons();
     }
 
     /// <summary>
-    /// Moves a character card to it's placed index position. 
-    /// 
-    /// Only use after MoveAllToTeamPositions has been called.
+    /// Handles the drawing and displaying of a random boss card
     /// </summary>
-    private void MoveToTeamPosition(CharacterCard character)
+    private void SetCurrentEncounterToRandomBossEncounter()
     {
-        character.transform.position = characterTeamPositions[character.placedIndex].position;
-    }
+        int randIndex = Random.Range(0, bossEncounterDeck.Count);
+        currentEncounter = bossEncounterDeck[randIndex];
+        bossEncounterDeck.RemoveAt(randIndex);
+        bossEncounterDiscardDeck.Add((BossEncounter)currentEncounter);
 
-    /// <summary>
-    /// Used during an encounter after the character has been selected
-    /// </summary>
-    /// <param name="character">The selected character card</param>
-    private void MoveToEncounterPosition(CharacterCard character)
-    {
-        character.transform.position = encounterCharacterPosition.position;
+        currentEncounter.gameObject.SetActive(true);
+        currentEncounter.transform.position = encounterCardPosition.position;
     }
 
     /// <summary>
@@ -904,7 +789,7 @@ public class CardManager : MonoBehaviour
             }
             UpdateButtons();
         }
-        else if(inItemEncounter && encounterItemSelected && !encounterCharacterSelected)
+        else if (inItemEncounter && encounterItemSelected && !encounterCharacterSelected)
         {
             currentCharacter = characterCard;
             characterCard.SelectCard();
@@ -915,6 +800,7 @@ public class CardManager : MonoBehaviour
             UpdateButtons();
         }
     }
+
 
     /// <summary>
     /// Used in the OnMousedown function within the CharacterCard to unselect them
@@ -952,39 +838,22 @@ public class CardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// If the boss still has health, pull a random card out of the boss encounter deck and display it.
+    /// Used during an encounter after the character has been selected
     /// </summary>
-    public void DrawBossEncounter()
+    /// <param name="character">The selected character card</param>
+    private void MoveToEncounterPosition(CharacterCard character)
     {
-        if (currentBoss.IsOnTheBoard() && currentBoss.IsAlive())
-        {
-            if (bossEncounterDeck.Count == 0)
-            {
-                ShuffleEncounterCards();
-            }
-
-            SetCurrentEncounterToRandomBossEncounter();
-
-            inBossEncounter = true;
-            hasRolled = false;
-            uiManager.UpdateBossInstructionText("Choose a Character", currentBoss);
-        }
-
-        UpdateButtons();
+        character.transform.position = encounterCharacterTransform.position;
     }
 
     /// <summary>
-    /// Handles the drawing and displaying of a random boss card
+    /// Moves a character card to it's placed index position. 
+    /// 
+    /// Only use after MoveAllToTeamPositions has been called.
     /// </summary>
-    private void SetCurrentEncounterToRandomBossEncounter()
+    private void MoveToTeamPosition(CharacterCard character)
     {
-        int randIndex = Random.Range(0, bossEncounterDeck.Count);
-        currentEncounter = bossEncounterDeck[randIndex];
-        bossEncounterDeck.RemoveAt(randIndex);
-        bossEncounterDiscardDeck.Add((BossEncounter)currentEncounter);
-
-        currentEncounter.gameObject.SetActive(true);
-        currentEncounter.transform.position = encounterCardPosition.position;
+        character.transform.position = characterTeam.GetTeamPosition(character.placedIndex);
     }
 
     private void HandleBossEncounterAction()
