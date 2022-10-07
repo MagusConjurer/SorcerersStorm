@@ -13,6 +13,8 @@ public class EncounterCard : Card
     [SerializeField] private Action lossResult;
     [SerializeField, Range(1, 2)] private int lossResultAmount;
 
+    private bool canClickItem;
+
     public string GetEncounterType()
     {
         return encounterType.ToString();
@@ -44,16 +46,24 @@ public class EncounterCard : Card
         }
     }
 
+    public void SetItemClickable(bool status)
+    {
+        if(encounterType.ToString() ==  "Item")
+        {
+            canClickItem = status;
+        }
+    }
+
     private void OnMouseDown()
     {
         if(encounterType.ToString() == "Item")
         {
-            if (selected == false && cardManager.ItemIsSelected() == false)
+            if (selected == false && cardManager.ItemIsSelected() == false && canClickItem)
             {
                 SelectCard();
                 cardManager.UpdateSelectedItem(this);
             }
-            else if (selected == true && cardManager.ItemIsSelected() == true)
+            else if (selected == true && cardManager.ItemIsSelected() == true && canClickItem)
             {
                 UnselectCard();
                 cardManager.UpdateSelectedItem(this);

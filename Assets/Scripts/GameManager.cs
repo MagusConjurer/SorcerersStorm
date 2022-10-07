@@ -5,6 +5,15 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     static private GameManager _instance;
+    private List<Boss> bosses;
+    private int level;
+
+    private GameManager()
+    {
+        level = 1;
+        bosses = new List<Boss>();
+        bosses.Add(new Boss("The Sorcerer", 5));
+    }
 
     public static GameManager Instance
     {
@@ -30,5 +39,15 @@ public class GameManager : MonoBehaviour
             _instance = this;
             DontDestroyOnLoad(gameObject);
         }
+    }
+
+    public Boss GetCurrentBoss()
+    {
+        return bosses[level - 1];
+    }
+
+    public int GetLevel()
+    {
+        return level;
     }
 }
