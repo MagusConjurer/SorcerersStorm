@@ -9,13 +9,19 @@ public class Team
     private int teamCount;
     private bool[] teamPositionIndexStatus;
 
+    private List<CharacterCard> initialDeck;
     private List<CharacterCard> teamDeck;
     private List<Transform> characterTeamTransforms;
 
-    public Team()
+    /// <summary>
+    /// Holds all data related to the player's team of characters
+    /// </summary>
+    /// <param name="characterDeck">The initial deck of characters</param>
+    public Team(List<CharacterCard> characterDeck)
     {
         fullTeamSelected = false;
         teamCount = 0;
+        initialDeck = characterDeck;
         teamDeck = new List<CharacterCard>();
         InitializeTeamPositions();
         InitializeTeamTransforms();
@@ -111,8 +117,7 @@ public class Team
     /// <summary>
     /// Moves the selected characters to their corresponding team positions.
     /// </summary>
-    /// <param name="characterDeck">List to remove from after the move</param>
-    public void MoveAllToTeamPositions(List<CharacterCard> characterDeck)
+    public void MoveAllToTeamPositions()
     {
         for (int i = 0; i < teamPositionIndexStatus.Length; i++)
         {
@@ -124,7 +129,7 @@ public class Team
                 characterCard.UnselectCard();
 
                 teamPositionIndexStatus[i] = false;
-                characterDeck.Remove(characterCard);
+                initialDeck.Remove(characterCard);
             }
         }
     }

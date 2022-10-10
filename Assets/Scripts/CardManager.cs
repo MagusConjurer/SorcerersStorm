@@ -99,7 +99,7 @@ public class CardManager : MonoBehaviour
             
         }
 
-        characterTeam = new Team();
+        characterTeam = new Team(characterDeck);
     }
 
     /// <summary>
@@ -901,7 +901,7 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void MoveOrHideAll()
     {
-        characterTeam.MoveAllToTeamPositions(characterDeck);
+        characterTeam.MoveAllToTeamPositions();
         HideRemainingCharacters();
     }
 
