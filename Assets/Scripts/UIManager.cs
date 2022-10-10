@@ -44,7 +44,6 @@ public class UIManager : MonoBehaviour
     private Button bossRollButton;
     private Button mainMenuButton;
     private Text bossInstructionText;
-//    private bool atBoss;
 
     /// Colors
     private Color sorcererPurple;
@@ -251,7 +250,7 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Finds and initializes all of the necessary game objects and variables. Assigns the associated listener to each button.
+    /// Finds and initializes all of the necessary game objects and variables for the game panels.
     /// </summary>
     public void LoadGamePanels()
     {
@@ -313,22 +312,22 @@ public class UIManager : MonoBehaviour
         }
 
         Button[] bossButtons = bossPanel.GetComponentsInChildren<Button>();
-        foreach(Button button in bossButtons)
+        foreach (Button button in bossButtons)
         {
             button.onClick.RemoveAllListeners();
-            if(button.name == "BossEncounterButton")
+            if (button.name == "BossEncounterButton")
             {
                 bossEncounterButton = button;
                 button.onClick.AddListener(cardManager.DrawBossEncounter);
                 button.enabled = false;
             }
-            else if(button.name == "BossDiceRollButton")
+            else if (button.name == "BossDiceRollButton")
             {
                 bossRollButton = button;
                 button.onClick.AddListener(cardManager.HandleRoll);
                 button.enabled = false;
             }
-            else if(button.name == "LoadMainMenuButton")
+            else if (button.name == "LoadMainMenuButton")
             {
                 mainMenuButton = button;
                 button.onClick.AddListener(LoadMainMenu);
@@ -409,6 +408,10 @@ public class UIManager : MonoBehaviour
         if(status)
         {
             UpdateRosterText("Confirm or Change Your Selection");
+        } 
+        else
+        {
+            UpdateRosterText("Select Your Four Characters");
         }
     }
 
