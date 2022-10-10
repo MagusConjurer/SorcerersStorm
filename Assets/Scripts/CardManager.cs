@@ -11,10 +11,13 @@ public class CardManager : MonoBehaviour
     private bool gameLoaded;
 
     // Character Cards
+    private List<CharacterCard> characterDeck;
+    private List<Transform> characterRosterTransforms;
+    private Transform encounterCharacterTransform;
     private CharacterCard currentCharacter;
-    private bool encounterCharacterSelected;
     private Team characterTeam;
-
+    private bool encounterCharacterSelected;
+    
     // Encounters
     private bool gameIsOver;
     private bool inBossEncounter;
@@ -72,26 +75,22 @@ public class CardManager : MonoBehaviour
     /// </summary>
     private void LoadCharacterCards()
     {
-        /// Get the lists of roster and team positions, then remove their parent transform from the list
-        characterRosterPositions = new List<Transform>();
-        characterRosterPositions.AddRange(GameObject.Find("RosterPositions").GetComponentsInChildren<Transform>());
-        characterRosterPositions.RemoveAt(0);
-        
-        characterTeamPositions = new List<Transform>();
-        characterTeamPositions.AddRange(GameObject.Find("TeamPositions").GetComponentsInChildren<Transform>());
-        characterTeamPositions.RemoveAt(0);
+        /// Get the lists of roster positions, then remove their parent transform from the list
+        characterRosterTransforms = new List<Transform>();
+        characterRosterTransforms.AddRange(GameObject.Find("RosterPositions").GetComponentsInChildren<Transform>());
+        characterRosterTransforms.RemoveAt(0);
 
-        encounterCharacterPosition = GameObject.Find("EncounterCharacterPosition").GetComponent<Transform>();
+        encounterCharacterTransform = GameObject.Find("EncounterCharacterPosition").GetComponent<Transform>();
         encounterCharacterSelected = false;
 
         characterDeck = new List<CharacterCard>();
         characterDeck.AddRange(GameObject.Find("CharacterCards").GetComponentsInChildren<CharacterCard>());
         for (int i = 0; i < characterDeck.Count; i++)
         {
-            if(i < characterRosterPositions.Count)
+            if(i < characterRosterTransforms.Count)
             {
                 characterDeck[i].gameObject.SetActive(true);
-                characterDeck[i].transform.position = characterRosterPositions[i].position;
+                characterDeck[i].transform.position = characterRosterTransforms[i].position;
             }
             else
             {
@@ -101,7 +100,6 @@ public class CardManager : MonoBehaviour
         }
 
         characterTeam = new Team();
-        characterSelectedDeck = new List<CharacterCard>();
     }
 
     /// <summary>
@@ -273,7 +271,7 @@ public class CardManager : MonoBehaviour
                 uiManager.EnableBossEncounterButton(false);
                 uiManager.EnableBossRollButton(false);
 
-                EndGame(TeamAlive());
+                EndGame(characterTeam.IsAlive());
             }
         }
     }
@@ -425,7 +423,7 @@ public class CardManager : MonoBehaviour
     {
         if (currentCharacter != null)
         {
-            MoveToTeamPosition(currentCharacter);
+            characterTeam.MoveToTeamPosition(currentCharacter);
             currentCharacter.UnselectCard();
             encounterCharacterSelected = false;
         }
@@ -814,7 +812,7 @@ public class CardManager : MonoBehaviour
             currentCharacter = characterCard;
             characterCard.UnselectCard();
             encounterCharacterSelected = false;
-            MoveToTeamPosition(currentCharacter);
+            characterTeam.MoveToTeamPosition(currentCharacter);
             if (currentBoss.IsOnTheBoard())
             {
                 uiManager.UpdateBossInstructionText(instruction, currentBoss);
@@ -831,7 +829,7 @@ public class CardManager : MonoBehaviour
             characterCard.UnselectCard();
             encounterCharacterSelected = false;
             currentEncounter.SetItemClickable(true);
-            MoveToTeamPosition(currentCharacter);
+            characterTeam.MoveToTeamPosition(currentCharacter);
             uiManager.UpdateInstructionText(instruction);
             UpdateButtons();
         }
@@ -847,13 +845,64 @@ public class CardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Moves a character card to it's placed index position. 
-    /// 
-    /// Only use after MoveAllToTeamPositions has been called.
+    /// Used after all selected characters are removed from the deck to remove the rest from the board.
     /// </summary>
-    private void MoveToTeamPosition(CharacterCard character)
+    private void HideRemainingCharacters()
     {
-        character.transform.position = characterTeam.GetTeamPosition(character.placedIndex);
+        foreach (CharacterCard card in characterDeck)
+        {
+            card.gameObject.SetActive(false);
+        }
+
+    }
+
+    /// <summary>
+    /// Used by the character cards
+    /// </summary>
+    public void AddToTeam(CharacterCard character)
+    {
+        bool canConfirm = characterTeam.AddToTeam(character);
+
+        if (character.confirmedInTeam == false)
+        {
+            uiManager.CanConfirmTeam(canConfirm);
+        }
+    }
+
+    /// <summary>
+    /// Used by the character cards
+    /// </summary>
+    public void RemoveFromTeam(CharacterCard character)
+    {
+        bool canConfirm = characterTeam.RemoveFromTeam(character);
+
+        if(character.confirmedInTeam == false)
+        {
+            uiManager.CanConfirmTeam(canConfirm);
+        }
+    }
+
+    /// <summary>
+    /// Method called by the confirm button during the team selection phase
+    /// </summary>
+    public void ConfirmTeam()
+    {
+        if (characterTeam.GetTeamCount() == 4)
+        {
+            uiManager.CanConfirmTeam(false);
+            uiManager.UpdateRosterText("");
+            Invoke(nameof(MoveOrHideAll), .5f);
+            Invoke(nameof(DisplayBoard), .75f);
+        }
+    }
+
+    /// <summary>
+    /// Helper method to allow invoke to be used in ConfirmTeam
+    /// </summary>
+    private void MoveOrHideAll()
+    {
+        characterTeam.MoveAllToTeamPositions(characterDeck);
+        HideRemainingCharacters();
     }
 
     private void HandleBossEncounterAction()

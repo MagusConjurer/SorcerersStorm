@@ -7,20 +7,18 @@ public class Team
 {
     private bool fullTeamSelected;
     private int teamCount;
-    private bool[] characterTeamPositionStatus;
+    private bool[] teamPositionIndexStatus;
 
-    private List<CharacterCard> characterDeck;
-    private List<CharacterCard> characterSelectedDeck;
-    private List<Transform> characterRosterTransform;
+    private List<CharacterCard> teamDeck;
     private List<Transform> characterTeamTransforms;
-    
-    private Transform encounterCharacterTransform;
 
     public Team()
     {
         fullTeamSelected = false;
         teamCount = 0;
+        teamDeck = new List<CharacterCard>();
         InitializeTeamPositions();
+        InitializeTeamTransforms();
     }
 
     /// <summary>
@@ -32,7 +30,7 @@ public class Team
         return teamCount > 0;
     }
 
-    public int TeamCount()
+    public int GetTeamCount()
     {
         return teamCount;
     }
@@ -41,11 +39,12 @@ public class Team
     /// Called when a character card is clicked on during the team selection phase
     /// </summary>
     /// <param name="characterCard"></param>
+    /// <returns>True if the confirm button should be shown</returns>
     public bool AddToTeam(CharacterCard characterCard)
     {
-        if (characterSelectedDeck.Contains(characterCard) == false && fullTeamSelected == false)
+        if (teamDeck.Contains(characterCard) == false && fullTeamSelected == false)
         {
-            characterSelectedDeck.Add(characterCard);
+            teamDeck.Add(characterCard);
             characterCard.inTeam = true;
             characterCard.SelectCard();
             teamCount++;
@@ -60,89 +59,89 @@ public class Team
 
     /// <summary>
     /// Called when a character already on the team is clicked on during the team selection phase
+    /// or when a character dies.
     /// </summary>
     /// <param name="characterCard"></param>
+    /// <returns>True if the confirm button should be shown</returns>
     public bool RemoveFromTeam(CharacterCard characterCard)
     {
-        if (characterSelectedDeck.Contains(characterCard) == true)
+        if (teamDeck.Contains(characterCard))
         {
-            characterSelectedDeck.Remove(characterCard);
-            characterCard.inTeam = false;
-            characterCard.UnselectCard();
             teamCount--;
-            if (teamCount < 4)
+
+            if (characterCard.confirmedInTeam == false)
             {
-                fullTeamSelected = false;
-                // uiManager.CanConfirmTeam(false);
-                return false;
-                uiManager.UpdateRosterText("Select Your Four Characters");
+                teamDeck.Remove(characterCard);
+                characterCard.inTeam = false;
+                characterCard.UnselectCard();
+                if (teamCount < 4)
+                {
+                    fullTeamSelected = false;
+                }
             }
+            return false;
         }
         return true;
     }
 
     /// <summary>
-    /// Method called by the confirm button during the team selection phase
+    /// Method called by the cardManager during the team selection phase
     /// </summary>
     public void ConfirmTeam()
     {
         if (teamCount == 4)
         {
-            foreach (CharacterCard card in characterSelectedDeck)
+            foreach (CharacterCard card in teamDeck)
             {
                 card.confirmedInTeam = true;
             }
-            uiManager.CanConfirmTeam(false);
-            uiManager.UpdateRosterText("");
-            Invoke(nameof(MoveAllToTeamPositions), .5f);
-            Invoke(nameof(DisplayBoard), .75f);
         }
     }
 
     /// <summary>
-    /// Used after all selected characters are removed from the deck to remove the rest from the board.
+    /// Moves a character card to it's placed index position. 
+    /// 
+    /// Only use after MoveAllToTeamPositions has been called.
     /// </summary>
-    private void HideRemainingCharacters()
+    public void MoveToTeamPosition(CharacterCard character)
     {
-        foreach (CharacterCard card in characterDeck)
-        {
-            card.gameObject.SetActive(false);
-        }
+        character.transform.position = characterTeamTransforms[character.placedIndex].position;
     }
 
     /// <summary>
     /// Moves the selected characters to their corresponding team positions.
     /// </summary>
-    public void MoveAllToTeamPositions()
+    /// <param name="characterDeck">List to remove from after the move</param>
+    public void MoveAllToTeamPositions(List<CharacterCard> characterDeck)
     {
-        for (int i = 0; i < characterTeamPositionStatus.Length; i++)
+        for (int i = 0; i < teamPositionIndexStatus.Length; i++)
         {
-            CharacterCard characterCard = characterSelectedDeck[i];
-            if (characterTeamPositionStatus[i] == true)
+            CharacterCard characterCard = teamDeck[i];
+            if (teamPositionIndexStatus[i] == true)
             {
                 characterCard.placedIndex = i;
                 MoveToTeamPosition(characterCard);
                 characterCard.UnselectCard();
 
-                characterTeamPositionStatus[i] = false;
+                teamPositionIndexStatus[i] = false;
                 characterDeck.Remove(characterCard);
             }
         }
-
-        HideRemainingCharacters();
-    }
-
-    public Vector3 GetTeamPosition(int positionIndex)
-    {
-        return characterTeamTransforms[positionIndex].position;
     }
 
     private void InitializeTeamPositions()
     {
-        characterTeamPositionStatus = new bool[4];
-        for (int i = 0; i < characterTeamPositionStatus.Length; i++)
+        teamPositionIndexStatus = new bool[4];
+        for (int i = 0; i < teamPositionIndexStatus.Length; i++)
         {
-            characterTeamPositionStatus[i] = true;
+            teamPositionIndexStatus[i] = true;
         }
+    }
+
+    private void InitializeTeamTransforms()
+    {
+        characterTeamTransforms = new List<Transform>();
+        characterTeamTransforms.AddRange(GameObject.Find("TeamPositions").GetComponentsInChildren<Transform>());
+        characterTeamTransforms.RemoveAt(0);
     }
 }

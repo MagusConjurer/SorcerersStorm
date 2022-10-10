@@ -53,7 +53,7 @@ public class CharacterCard : Card
         {
             isAlive = false;
             HideCard();
-            cardManager.DecreaseTeamCount();
+            cardManager.RemoveFromTeam(this);
         }
     }
 
