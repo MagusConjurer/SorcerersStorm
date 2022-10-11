@@ -94,6 +94,7 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void LoadGame()
     {
+        gameManager.StartGame();
         SceneManager.LoadScene("GameScene");
     }
 
@@ -102,6 +103,7 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void LoadMainMenu()
     {
+        gameManager.EndGame();
         SceneManager.LoadScene("MainMenu");
     }
 
