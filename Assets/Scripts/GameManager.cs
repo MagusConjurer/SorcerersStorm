@@ -6,13 +6,12 @@ public class GameManager : MonoBehaviour
 {
     static private GameManager _instance;
     private List<Boss> bosses;
-    private int level;
+    private int currentLevel;
+    private bool gameStarted;
 
     private GameManager()
     {
-        level = 1;
-        bosses = new List<Boss>();
-        bosses.Add(new Boss("The Sorcerer", 5));
+        gameStarted = false;
     }
 
     public static GameManager Instance
@@ -43,11 +42,24 @@ public class GameManager : MonoBehaviour
 
     public Boss GetCurrentBoss()
     {
-        return bosses[level - 1];
+        return bosses[currentLevel - 1];
     }
 
     public int GetLevel()
     {
-        return level;
+        return currentLevel;
+    }
+
+    public void StartGame()
+    {
+        currentLevel = 1;
+        bosses = new List<Boss>();
+        bosses.Add(new Boss("The Sorcerer", 5));
+        gameStarted = true;
+    }
+
+    public void EndGame()
+    {
+        gameStarted = false;
     }
 }

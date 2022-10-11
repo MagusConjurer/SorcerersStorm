@@ -303,7 +303,7 @@ public class CardManager : MonoBehaviour
     /// <param name="amount"></param>
     private void IncrementTurnTracker(int amount)
     {
-        bool reachedTheBoss = uiManager.IncrementTurnTracker(10);
+        bool reachedTheBoss = uiManager.IncrementTurnTracker(amount);
         if(reachedTheBoss)
         {
             currentBoss.Activate();
